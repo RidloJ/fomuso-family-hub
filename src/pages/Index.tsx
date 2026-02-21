@@ -17,14 +17,14 @@ const Index = () => {
       <nav className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
         <div className="flex items-center gap-2">
           <Heart className="h-6 w-6 text-primary fill-primary" />
-          <span className="font-display text-xl font-bold text-foreground">Family Hub</span>
+          <span className="font-display text-xl font-bold text-foreground">Fomuso Family</span>
         </div>
         <div className="flex gap-3">
           <Button variant="ghost" asChild>
             <Link to="/login">Log in</Link>
           </Button>
           <Button asChild>
-            <Link to="/signup">Join Family</Link>
+            <Link to="/signup">Join the Fomusos</Link>
           </Button>
         </div>
       </nav>
@@ -37,11 +37,11 @@ const Index = () => {
           transition={{ duration: 0.7 }}
         >
           <h1 className="font-display text-5xl md:text-6xl font-bold text-foreground leading-tight mb-6">
-            Where Family <span className="text-primary">Comes Together</span>
+            The Fomuso Family <span className="text-primary">Hub</span>
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-            A warm, private space for your family to share memories, plan events,
-            track projects, and stay connected — no matter the distance.
+            Our warm, private space to share memories, plan events,
+            track family projects, and stay connected — no matter the distance.
           </p>
           <div className="flex gap-4 justify-center">
             <Button size="lg" asChild className="text-base px-8">
@@ -77,10 +77,10 @@ const Index = () => {
 
       {/* About */}
       <section className="px-6 pb-24 max-w-3xl mx-auto text-center">
-        <h2 className="font-display text-3xl font-bold mb-4">About Family Hub</h2>
+        <h2 className="font-display text-3xl font-bold mb-4">About the Fomusos</h2>
         <p className="text-muted-foreground leading-relaxed">
-          Family Hub is your private digital home — a place where every photo, every milestone,
-          and every family project lives together. Built with love for families who want to stay
+          The Fomuso Family Hub is our private digital home — a place where every photo, every milestone,
+          and every family project lives together. Built with love for our family to stay
           close, organized, and celebrate life's moments as one.
         </p>
       </section>
@@ -89,7 +89,7 @@ const Index = () => {
       <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">
         <div className="flex items-center justify-center gap-2">
           <Heart className="h-4 w-4 text-primary fill-primary" />
-          <span>Family Hub — Made with love</span>
+          <span>Fomuso Family Hub — Made with love</span>
         </div>
       </footer>
     </div>

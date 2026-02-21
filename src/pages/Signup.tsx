@@ -43,9 +43,9 @@ const Signup = () => {
         <CardHeader className="text-center">
           <Link to="/" className="flex items-center justify-center gap-2 mb-4">
             <Heart className="h-6 w-6 text-primary fill-primary" />
-            <span className="font-display text-xl font-bold">Family Hub</span>
+            <span className="font-display text-xl font-bold">Fomuso Family</span>
           </Link>
-          <CardTitle className="font-display text-2xl">Join the Family</CardTitle>
+          <CardTitle className="font-display text-2xl">Join the Fomuso Family</CardTitle>
           <CardDescription>Create your account to get started</CardDescription>
         </CardHeader>
         <form onSubmit={handleSignup}>

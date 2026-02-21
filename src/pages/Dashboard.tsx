@@ -33,7 +33,7 @@ const Dashboard = () => {
       <nav className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto border-b border-border">
         <div className="flex items-center gap-2">
           <Heart className="h-6 w-6 text-primary fill-primary" />
-          <span className="font-display text-xl font-bold">Family Hub</span>
+          <span className="font-display text-xl font-bold">Fomuso Family</span>
         </div>
         <Button variant="ghost" size="sm" onClick={handleLogout}>
           <LogOut className="h-4 w-4 mr-2" /> Sign out
