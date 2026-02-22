@@ -6,95 +6,95 @@
 
 @layer base {
   :root {
-    --background: 45 100% 97%;
-    --foreground: 260 30% 20%;
+    --background: 30 30% 95%;
+    --foreground: 220 30% 15%;
 
-    --card: 45 80% 99%;
-    --card-foreground: 260 30% 20%;
+    --card: 30 25% 98%;
+    --card-foreground: 220 30% 15%;
 
-    --popover: 45 80% 99%;
-    --popover-foreground: 260 30% 20%;
+    --popover: 30 25% 98%;
+    --popover-foreground: 220 30% 15%;
 
-    --primary: 340 75% 55%;
+    --primary: 345 80% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 170 55% 88%;
-    --secondary-foreground: 170 50% 25%;
+    --secondary: 160 40% 85%;
+    --secondary-foreground: 160 45% 20%;
 
-    --muted: 45 40% 93%;
-    --muted-foreground: 260 10% 45%;
+    --muted: 30 20% 90%;
+    --muted-foreground: 220 15% 40%;
 
-    --accent: 45 90% 80%;
-    --accent-foreground: 260 30% 20%;
+    --accent: 35 80% 75%;
+    --accent-foreground: 220 30% 15%;
 
-    --destructive: 0 70% 55%;
+    --destructive: 0 75% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 45 40% 88%;
-    --input: 45 40% 88%;
-    --ring: 340 75% 55%;
+    --border: 30 20% 85%;
+    --input: 30 20% 85%;
+    --ring: 345 80% 50%;
 
     --radius: 1rem;
 
-    --sidebar-background: 45 60% 95%;
-    --sidebar-foreground: 260 30% 20%;
-    --sidebar-primary: 340 75% 55%;
+    --sidebar-background: 30 25% 93%;
+    --sidebar-foreground: 220 30% 15%;
+    --sidebar-primary: 345 80% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 45 90% 80%;
-    --sidebar-accent-foreground: 260 30% 20%;
-    --sidebar-border: 45 40% 88%;
-    --sidebar-ring: 340 75% 55%;
+    --sidebar-accent: 35 80% 75%;
+    --sidebar-accent-foreground: 220 30% 15%;
+    --sidebar-border: 30 20% 85%;
+    --sidebar-ring: 345 80% 50%;
 
-    --warm-green: 150 60% 45%;
-    --warm-orange: 30 90% 58%;
-    --warm-cream: 45 80% 94%;
-    --fun-purple: 270 60% 65%;
-    --fun-blue: 200 80% 60%;
+    --warm-green: 150 55% 40%;
+    --warm-orange: 25 90% 55%;
+    --warm-cream: 30 30% 92%;
+    --fun-purple: 270 55% 60%;
+    --fun-blue: 205 75% 55%;
   }
 
   .dark {
-    --background: 260 20% 10%;
-    --foreground: 45 80% 95%;
+    --background: 220 25% 8%;
+    --foreground: 30 30% 92%;
 
-    --card: 260 18% 14%;
-    --card-foreground: 45 80% 95%;
+    --card: 220 22% 12%;
+    --card-foreground: 30 30% 92%;
 
-    --popover: 260 18% 14%;
-    --popover-foreground: 45 80% 95%;
+    --popover: 220 22% 12%;
+    --popover-foreground: 30 30% 92%;
 
-    --primary: 340 75% 60%;
+    --primary: 345 80% 58%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 170 40% 20%;
-    --secondary-foreground: 170 50% 85%;
+    --secondary: 160 30% 18%;
+    --secondary-foreground: 160 40% 85%;
 
-    --muted: 260 15% 20%;
-    --muted-foreground: 45 20% 60%;
+    --muted: 220 18% 18%;
+    --muted-foreground: 30 15% 55%;
 
-    --accent: 45 60% 30%;
-    --accent-foreground: 45 80% 95%;
+    --accent: 35 50% 28%;
+    --accent-foreground: 30 30% 92%;
 
-    --destructive: 0 60% 50%;
+    --destructive: 0 65% 48%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 260 15% 22%;
-    --input: 260 15% 22%;
-    --ring: 340 75% 60%;
+    --border: 220 18% 20%;
+    --input: 220 18% 20%;
+    --ring: 345 80% 58%;
 
-    --sidebar-background: 260 18% 12%;
-    --sidebar-foreground: 45 80% 95%;
-    --sidebar-primary: 340 75% 60%;
+    --sidebar-background: 220 22% 10%;
+    --sidebar-foreground: 30 30% 92%;
+    --sidebar-primary: 345 80% 58%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 45 60% 30%;
-    --sidebar-accent-foreground: 45 80% 95%;
-    --sidebar-border: 260 15% 22%;
-    --sidebar-ring: 340 75% 60%;
+    --sidebar-accent: 35 50% 28%;
+    --sidebar-accent-foreground: 30 30% 92%;
+    --sidebar-border: 220 18% 20%;
+    --sidebar-ring: 345 80% 58%;
 
-    --warm-green: 150 55% 50%;
-    --warm-orange: 30 85% 62%;
-    --warm-cream: 45 30% 18%;
-    --fun-purple: 270 55% 55%;
-    --fun-blue: 200 70% 55%;
+    --warm-green: 150 50% 45%;
+    --warm-orange: 25 85% 58%;
+    --warm-cream: 30 20% 15%;
+    --fun-purple: 270 50% 52%;
+    --fun-blue: 205 65% 50%;
   }
 }
 
