@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Image, FolderOpen, CalendarDays } from "lucide-react";
+import { Plus, Image, FolderOpen, CalendarDays, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -37,6 +38,7 @@ const Gallery = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [familyBranch, setFamilyBranch] = useState("");
+  const [albumToDelete, setAlbumToDelete] = useState<Album | null>(null);
 
   const { data: albums = [], isLoading } = useQuery({
     queryKey: ["albums"],
@@ -82,7 +84,26 @@ const Gallery = () => {
     onError: (e: any) => toast({ title: "Oops! 😅", description: e.message, variant: "destructive" }),
   });
 
-  if (authLoading || !user) return null;
+  const deleteAlbum = useMutation({
+    mutationFn: async (album: Album) => {
+      if ((album.media_count ?? 0) > 0) {
+        throw new Error("This album still has photos/videos. Please delete all media first before removing the album.");
+      }
+      const { error } = await supabase.from("albums").delete().eq("id", album.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["albums"] });
+      setAlbumToDelete(null);
+      toast({ title: "Album deleted! 🗑️" });
+    },
+    onError: (e: any) => {
+      setAlbumToDelete(null);
+      toast({ title: "Can't delete 😅", description: e.message, variant: "destructive" });
+    },
+  });
+
+
 
   if (selectedAlbum) {
     return (
@@ -210,7 +231,7 @@ const Gallery = () => {
                       No albums yet for this family. Be the first to add one! 🌟
                     </p>
                   ) : (
-                    <AlbumGrid albums={branchAlbums} onSelect={setSelectedAlbum} />
+                    <AlbumGrid albums={branchAlbums} onSelect={setSelectedAlbum} onDelete={setAlbumToDelete} />
                   )}
                 </section>
               );
@@ -224,17 +245,42 @@ const Gallery = () => {
                     {unassigned.length} album{unassigned.length !== 1 ? "s" : ""}
                   </span>
                 </div>
-                <AlbumGrid albums={unassigned} onSelect={setSelectedAlbum} />
+                <AlbumGrid albums={unassigned} onSelect={setSelectedAlbum} onDelete={setAlbumToDelete} />
               </section>
             )}
           </div>
         )}
       </main>
+
+      {/* Delete album confirmation */}
+      <AlertDialog open={!!albumToDelete} onOpenChange={(open) => !open && setAlbumToDelete(null)}>
+        <AlertDialogContent className="rounded-3xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display">Delete "{albumToDelete?.title}"? 🗑️</AlertDialogTitle>
+            <AlertDialogDescription className="font-display">
+              {(albumToDelete?.media_count ?? 0) > 0
+                ? `This album still has ${albumToDelete?.media_count} item(s). Please delete all photos and videos inside it first before removing the album.`
+                : "This action cannot be undone. The album will be permanently removed."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-full font-display">Cancel</AlertDialogCancel>
+            {(albumToDelete?.media_count ?? 0) === 0 && (
+              <AlertDialogAction
+                className="rounded-full font-display bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => albumToDelete && deleteAlbum.mutate(albumToDelete)}
+              >
+                Delete Album
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
 
-const AlbumGrid = ({ albums, onSelect }: { albums: Album[]; onSelect: (a: Album) => void }) => (
+const AlbumGrid = ({ albums, onSelect, onDelete }: { albums: Album[]; onSelect: (a: Album) => void; onDelete: (a: Album) => void }) => (
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
     <AnimatePresence>
       {albums.map((album, i) => (
@@ -245,8 +291,15 @@ const AlbumGrid = ({ albums, onSelect }: { albums: Album[]; onSelect: (a: Album)
           transition={{ delay: i * 0.1, type: "spring", bounce: 0.3 }}
           whileHover={{ y: -6, scale: 1.02 }}
           onClick={() => onSelect(album)}
-          className="bg-card rounded-2xl border-2 border-border shadow-md overflow-hidden cursor-pointer"
+          className="bg-card rounded-2xl border-2 border-border shadow-md overflow-hidden cursor-pointer relative group"
         >
+          {/* Delete button */}
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(album); }}
+            className="absolute top-2 right-2 z-10 bg-background/80 hover:bg-destructive hover:text-destructive-foreground rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all shadow-sm"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
           <div className="aspect-video bg-muted flex items-center justify-center relative overflow-hidden">
             {album.cover_url ? (
               <img src={album.cover_url} alt={album.title} className="w-full h-full object-cover" />
