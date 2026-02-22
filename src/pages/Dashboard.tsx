@@ -1,8 +1,12 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Camera, CalendarDays, Megaphone, PiggyBank, ArrowRight } from "lucide-react";
+import { Camera, CalendarDays, Megaphone, PiggyBank, ArrowRight, Cake } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 import AppNav from "@/components/AppNav";
 
 const sections = [
@@ -106,8 +110,68 @@ const Dashboard = () => {
             </motion.div>
           ))}
         </div>
+
+        <BirthdaysThisMonth user={user} />
       </main>
     </div>
+  );
+};
+
+const BirthdaysThisMonth = ({ user }: { user: any }) => {
+  const currentMonth = new Date().getMonth() + 1;
+
+  const { data: birthdays = [] } = useQuery({
+    queryKey: ["birthdays-this-month", currentMonth],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("family_members")
+        .select("first_name, last_name, date_of_birth");
+      if (error) throw error;
+      return (data || [])
+        .filter((m: any) => new Date(m.date_of_birth).getMonth() + 1 === currentMonth)
+        .sort((a: any, b: any) => new Date(a.date_of_birth).getDate() - new Date(b.date_of_birth).getDate());
+    },
+    enabled: !!user,
+  });
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.4 }}
+      className="mt-10"
+    >
+      <Card className="rounded-2xl border-2">
+        <CardHeader className="flex flex-row items-center gap-3 pb-2">
+          <Cake className="h-6 w-6 text-primary" />
+          <CardTitle className="font-display text-xl">
+            🎂 Birthdays in {format(new Date(), "MMMM")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {birthdays.length === 0 ? (
+            <p className="text-muted-foreground text-sm font-display">No birthdays this month.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {birthdays.map((b: any, i: number) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 rounded-xl bg-accent/40 px-4 py-3"
+                >
+                  <span className="text-2xl">🎈</span>
+                  <div>
+                    <p className="font-display font-semibold text-sm">{b.first_name} {b.last_name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(b.date_of_birth), "dd MMMM")}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 };
 
