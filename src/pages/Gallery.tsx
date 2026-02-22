@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Image, FolderOpen } from "lucide-react";
+import { Plus, Image, FolderOpen, CalendarDays } from "lucide-react";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -261,9 +262,15 @@ const AlbumGrid = ({ albums, onSelect }: { albums: Album[]; onSelect: (a: Album)
             {album.description && (
               <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{album.description}</p>
             )}
-            <div className="flex items-center gap-2 mt-3 text-sm text-muted-foreground font-display">
-              <Image className="h-4 w-4" />
-              <span>{album.media_count} items</span>
+            <div className="flex items-center justify-between mt-3 text-sm text-muted-foreground font-display">
+              <div className="flex items-center gap-1">
+                <Image className="h-4 w-4" />
+                <span>{album.media_count} items</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <CalendarDays className="h-3.5 w-3.5" />
+                <span className="text-xs">{format(new Date(album.created_at), "MMM d, yyyy")}</span>
+              </div>
             </div>
           </div>
         </motion.div>
