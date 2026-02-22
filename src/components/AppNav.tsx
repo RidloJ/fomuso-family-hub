@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Heart, LogOut, Camera, Home, Calendar } from "lucide-react";
+import { Heart, LogOut, Camera, Home, Calendar, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +9,7 @@ const navItems = [
   { to: "/dashboard", label: "Home", icon: Home, emoji: "🏠" },
   { to: "/gallery", label: "Gallery", icon: Camera, emoji: "📸" },
   { to: "/events", label: "Events", icon: Calendar, emoji: "🎉" },
+  { to: "/family", label: "Family", icon: Users, emoji: "👨‍👩‍👧‍👦" },
 ];
 
 const AppNav = () => {
