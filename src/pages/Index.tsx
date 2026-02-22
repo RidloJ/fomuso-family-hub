@@ -1,6 +1,7 @@
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Heart, Camera, Calendar, TrendingUp, Users, ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Heart, Camera, Calendar, TrendingUp, Users, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import heroFamily1 from "@/assets/hero-family-1.jpg";
 import heroFamily2 from "@/assets/hero-family-2.jpg";
@@ -13,6 +14,105 @@ const features = [
   { icon: TrendingUp, title: "🚀 Family Projects", desc: "Work together on cool goals and track our progress!" },
   { icon: Users, title: "💬 Stay Connected", desc: "Our own private space to chat and share updates!" },
 ];
+
+const carouselImages = [
+  { src: heroFamily1, caption: "Family Moments 🥰" },
+  { src: heroFamily2, caption: "Together Forever 💕" },
+  { src: heroFamily3, caption: "Making Memories ✨" },
+  { src: heroFamily4, caption: "Our Happy Place 🏡" },
+];
+
+const FamilyCarousel = () => {
+  const [current, setCurrent] = useState(0);
+  const [direction, setDirection] = useState(1);
+
+  const next = useCallback(() => {
+    setDirection(1);
+    setCurrent((prev) => (prev + 1) % carouselImages.length);
+  }, []);
+
+  const prev = useCallback(() => {
+    setDirection(-1);
+    setCurrent((prev) => (prev - 1 + carouselImages.length) % carouselImages.length);
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(next, 4000);
+    return () => clearInterval(timer);
+  }, [next]);
+
+  const variants = {
+    enter: (d: number) => ({ x: d > 0 ? 300 : -300, opacity: 0, scale: 0.95 }),
+    center: { x: 0, opacity: 1, scale: 1 },
+    exit: (d: number) => ({ x: d > 0 ? -300 : 300, opacity: 0, scale: 0.95 }),
+  };
+
+  return (
+    <section className="py-10 max-w-5xl mx-auto px-6">
+      <div className="relative rounded-3xl overflow-hidden shadow-xl border-2 border-border bg-muted">
+        <div className="aspect-[16/9] md:aspect-[21/9] relative">
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.img
+              key={current}
+              src={carouselImages[current].src}
+              alt={carouselImages[current].caption}
+              custom={direction}
+              variants={variants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.5, ease: "easeInOut" }}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          </AnimatePresence>
+
+          {/* Caption overlay */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={current}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ delay: 0.2, duration: 0.4 }}
+              className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-6 md:p-8"
+            >
+              <p className="font-display text-xl md:text-2xl font-bold text-white drop-shadow-lg">
+                {carouselImages[current].caption}
+              </p>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Nav buttons */}
+          <button
+            onClick={prev}
+            className="absolute left-3 top-1/2 -translate-y-1/2 bg-background/70 hover:bg-background/90 rounded-full p-2 shadow-md transition-colors"
+          >
+            <ChevronLeft className="h-5 w-5 text-foreground" />
+          </button>
+          <button
+            onClick={next}
+            className="absolute right-3 top-1/2 -translate-y-1/2 bg-background/70 hover:bg-background/90 rounded-full p-2 shadow-md transition-colors"
+          >
+            <ChevronRight className="h-5 w-5 text-foreground" />
+          </button>
+        </div>
+
+        {/* Dots */}
+        <div className="flex justify-center gap-2 py-3">
+          {carouselImages.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => { setDirection(i > current ? 1 : -1); setCurrent(i); }}
+              className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                i === current ? "bg-primary scale-125" : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
 
 const Index = () => {
   return (
@@ -64,27 +164,8 @@ const Index = () => {
         </motion.div>
       </section>
 
-      {/* ─── Photo Strip ─── */}
-      <section className="py-8">
-        <div className="flex gap-3 md:gap-4 px-0 overflow-hidden">
-          {[heroFamily2, heroFamily3, heroFamily1, heroFamily4].map((src, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 + i * 0.15, duration: 0.6 }}
-              className={`flex-1 ${i === 2 ? 'flex-[1.5]' : ''}`}
-            >
-              <img
-                src={src}
-                alt={`Family moment ${i + 1}`}
-                className="w-full h-[300px] md:h-[500px] object-cover"
-                loading="lazy"
-              />
-            </motion.div>
-          ))}
-        </div>
-      </section>
+      {/* ─── Photo Carousel ─── */}
+      <FamilyCarousel />
 
       {/* ─── About Section ─── */}
       <section id="about" className="max-w-6xl mx-auto px-8 py-20">
