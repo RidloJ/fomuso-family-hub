@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Users, Calendar } from "lucide-react";
+import { UserPlus, Users, Calendar, Search } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 
@@ -24,6 +24,7 @@ const FamilyMembers = () => {
   const [dob, setDob] = useState("");
   const [father, setFather] = useState("");
   const [mother, setMother] = useState("");
+  const [search, setSearch] = useState("");
 
   const { data: members = [], isLoading } = useQuery({
     queryKey: ["family-members"],
@@ -154,10 +155,19 @@ const FamilyMembers = () => {
             </Card>
           ) : (
             <Card className="rounded-3xl border-2 overflow-hidden">
-              <CardHeader>
+              <CardHeader className="space-y-4">
                 <CardTitle className="font-display text-lg">
                   {members.length} Family Member{members.length !== 1 ? "s" : ""} Registered
                 </CardTitle>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by name, parent..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-9 rounded-xl"
+                  />
+                </div>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
@@ -172,7 +182,18 @@ const FamilyMembers = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {members.map((member: any) => (
+                      {members
+                        .filter((m: any) => {
+                          if (!search.trim()) return true;
+                          const q = search.toLowerCase();
+                          return (
+                            m.first_name.toLowerCase().includes(q) ||
+                            m.last_name.toLowerCase().includes(q) ||
+                            (m.father && m.father.toLowerCase().includes(q)) ||
+                            (m.mother && m.mother.toLowerCase().includes(q))
+                          );
+                        })
+                        .map((member: any) => (
                         <TableRow key={member.id}>
                           <TableCell className="font-medium">{member.first_name}</TableCell>
                           <TableCell>{member.last_name}</TableCell>
