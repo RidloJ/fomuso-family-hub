@@ -27,7 +27,6 @@ const Index = () => {
         </div>
         <div className="hidden sm:flex items-center gap-8 font-display text-sm tracking-wide">
           <a href="#about" className="text-muted-foreground hover:text-foreground transition-colors">About</a>
-          <a href="#gallery" className="text-muted-foreground hover:text-foreground transition-colors">Gallery</a>
           <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">Features</a>
           <Link to="/login" className="text-muted-foreground hover:text-foreground transition-colors">Sign In</Link>
         </div>
@@ -126,100 +125,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ─── Gallery Preview ─── */}
-      <section id="gallery" className="bg-muted/50 py-20">
-        <div className="max-w-6xl mx-auto px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">Our Gallery 📸</h2>
-            <p className="text-muted-foreground text-lg max-w-lg mx-auto">
-              A glimpse into our family's favorite moments — sign in to see and share more!
-            </p>
-          </motion.div>
-
-          {/* Album-style showcase */}
-          <div className="space-y-16">
-            {/* Album 1 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-              >
-                <h3 className="font-display text-2xl font-semibold mb-3">Family Moments 🥰</h3>
-                <p className="text-muted-foreground mb-4">
-                  The laughs, the hugs, the silly faces — these are the moments we never want to forget.
-                </p>
-                <Button variant="link" asChild className="font-display p-0 text-primary">
-                  <Link to="/login">View Album <ArrowRight className="h-4 w-4 ml-1" /></Link>
-                </Button>
-              </motion.div>
-              <div className="grid grid-cols-2 gap-3">
-                <motion.img
-                  src={heroFamily1}
-                  alt="Family moments"
-                  className="rounded-xl w-full h-48 object-cover shadow-md"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.1 }}
-                />
-                <motion.img
-                  src={heroFamily4}
-                  alt="Family moments"
-                  className="rounded-xl w-full h-48 object-cover shadow-md"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.2 }}
-                />
-              </div>
-            </div>
-
-            {/* Album 2 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-              <div className="grid grid-cols-2 gap-3 order-2 md:order-1">
-                <motion.img
-                  src={heroFamily3}
-                  alt="Adventures"
-                  className="rounded-xl w-full h-48 object-cover shadow-md"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.1 }}
-                />
-                <motion.img
-                  src={heroFamily2}
-                  alt="Adventures"
-                  className="rounded-xl w-full h-48 object-cover shadow-md"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.2 }}
-                />
-              </div>
-              <motion.div
-                className="order-1 md:order-2"
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-              >
-                <h3 className="font-display text-2xl font-semibold mb-3">Adventures & Fun 🌈</h3>
-                <p className="text-muted-foreground mb-4">
-                  From outdoor explorations to cozy game nights — our family knows how to have a great time!
-                </p>
-                <Button variant="link" asChild className="font-display p-0 text-primary">
-                  <Link to="/login">View Album <ArrowRight className="h-4 w-4 ml-1" /></Link>
-                </Button>
-              </motion.div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ─── Features / What We Do ─── */}
       <section id="features" className="max-w-5xl mx-auto px-8 py-20">
