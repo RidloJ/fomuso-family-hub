@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Camera, CalendarDays, Megaphone, PiggyBank, ArrowRight, Cake } from "lucide-react";
+import { Camera, CalendarDays, Megaphone, PiggyBank, ArrowRight, Cake, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,6 +8,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import AppNav from "@/components/AppNav";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { useNjangiPeriod } from "@/hooks/useNjangi";
+import { getDaysToDeadline, getDeadlineLabel, statusConfig } from "@/lib/njangi-utils";
 
 const sections = [
   {
@@ -36,13 +40,12 @@ const sections = [
     comingSoon: true,
   },
   {
-    to: "#",
+    to: "/njangi",
     icon: PiggyBank,
     emoji: "💰",
-    title: "Contributions & Projects",
-    desc: "Track family projects, contributions, and progress toward shared goals.",
+    title: "Njangi",
+    desc: "Track monthly family contributions, record payments, and view the annual schedule.",
     color: "from-muted to-muted/50",
-    comingSoon: true,
   },
 ];
 
@@ -111,6 +114,8 @@ const Dashboard = () => {
           ))}
         </div>
 
+
+        <NjangiWidget user={user} />
         <BirthdaysThisMonth user={user} />
       </main>
     </div>
@@ -169,6 +174,45 @@ const BirthdaysThisMonth = ({ user }: { user: any }) => {
               ))}
             </div>
           )}
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+};
+
+const NjangiWidget = ({ user }: { user: any }) => {
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  const year = now.getFullYear();
+  const { data: period } = useNjangiPeriod(month, year);
+
+  const expected = Number(period?.expected_total || 0);
+  const remitted = Number(period?.total_remitted || 0);
+  const balance = Number(period?.balance_left || 0);
+  const daysLeft = getDaysToDeadline(year, month);
+  const statusKey = (period?.status as keyof typeof statusConfig) || "not_started";
+  const sc = statusConfig[statusKey];
+  const pct = expected > 0 ? Math.min(100, (remitted / expected) * 100) : 0;
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="mt-10">
+      <Card className="rounded-2xl border-2">
+        <CardHeader className="flex flex-row items-center gap-3 pb-2">
+          <DollarSign className="h-6 w-6 text-primary" />
+          <CardTitle className="font-display text-xl">💰 Njangi — {format(now, "MMMM yyyy")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Progress value={pct} className="h-2 mb-3" />
+          <div className="flex flex-wrap items-center gap-4 mb-3 text-sm font-display">
+            <span>Expected: <strong>${expected.toLocaleString()}</strong></span>
+            <span>Remitted: <strong className="text-primary">${remitted.toLocaleString()}</strong></span>
+            <span>Left: <strong>${balance.toLocaleString()}</strong></span>
+            <Badge className={`${sc.color} text-xs`}>{sc.emoji} {sc.label}</Badge>
+            <span className="text-muted-foreground text-xs">{daysLeft >= 0 ? `${daysLeft} days left` : "Past deadline"}</span>
+          </div>
+          <Button asChild size="sm" className="rounded-full font-display">
+            <Link to="/njangi">Open Njangi →</Link>
+          </Button>
         </CardContent>
       </Card>
     </motion.div>

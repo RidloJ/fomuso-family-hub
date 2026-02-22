@@ -250,6 +250,123 @@ export type Database = {
           },
         ]
       }
+      njangi_members: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string
+          expected_monthly_amount: number | null
+          full_name: string
+          id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by: string
+          expected_monthly_amount?: number | null
+          full_name: string
+          id?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string
+          expected_monthly_amount?: number | null
+          full_name?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      njangi_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string
+          id: string
+          member_id: string
+          note: string | null
+          payment_date: string
+          payment_method: Database["public"]["Enums"]["njangi_payment_method"]
+          period_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by: string
+          id?: string
+          member_id: string
+          note?: string | null
+          payment_date?: string
+          payment_method?: Database["public"]["Enums"]["njangi_payment_method"]
+          period_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string
+          id?: string
+          member_id?: string
+          note?: string | null
+          payment_date?: string
+          payment_method?: Database["public"]["Enums"]["njangi_payment_method"]
+          period_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "njangi_payments_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "njangi_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "njangi_payments_period_id_fkey"
+            columns: ["period_id"]
+            isOneToOne: false
+            referencedRelation: "njangi_periods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      njangi_periods: {
+        Row: {
+          balance_left: number
+          created_at: string
+          created_by: string
+          deadline_date: string
+          expected_total: number
+          id: string
+          period_month: number
+          period_year: number
+          status: Database["public"]["Enums"]["njangi_status"]
+          total_remitted: number
+        }
+        Insert: {
+          balance_left?: number
+          created_at?: string
+          created_by: string
+          deadline_date: string
+          expected_total?: number
+          id?: string
+          period_month: number
+          period_year: number
+          status?: Database["public"]["Enums"]["njangi_status"]
+          total_remitted?: number
+        }
+        Update: {
+          balance_left?: number
+          created_at?: string
+          created_by?: string
+          deadline_date?: string
+          expected_total?: number
+          id?: string
+          period_month?: number
+          period_year?: number
+          status?: Database["public"]["Enums"]["njangi_status"]
+          total_remitted?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -316,6 +433,8 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "member"
+      njangi_payment_method: "cash" | "interac" | "bank_transfer" | "other"
+      njangi_status: "not_started" | "partial" | "completed" | "overpaid"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -444,6 +563,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "member"],
+      njangi_payment_method: ["cash", "interac", "bank_transfer", "other"],
+      njangi_status: ["not_started", "partial", "completed", "overpaid"],
     },
   },
 } as const
