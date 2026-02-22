@@ -6,12 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import AppNav from "@/components/AppNav";
 import AlbumView from "@/components/gallery/AlbumView";
+
+const FAMILY_BRANCHES = ["Yvonne", "Solo", "Bankom", "Nah", "Nandet"] as const;
 
 interface Album {
   id: string;
@@ -20,6 +23,7 @@ interface Album {
   cover_url: string | null;
   created_by: string;
   created_at: string;
+  family_branch: string | null;
   media_count?: number;
 }
 
@@ -31,6 +35,7 @@ const Gallery = () => {
   const [newAlbumOpen, setNewAlbumOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [familyBranch, setFamilyBranch] = useState("");
 
   const { data: albums = [], isLoading } = useQuery({
     queryKey: ["albums"],
@@ -41,7 +46,6 @@ const Gallery = () => {
         .order("created_at", { ascending: false });
       if (error) throw error;
 
-      // Get media counts
       const albumsWithCounts = await Promise.all(
         (data as Album[]).map(async (album) => {
           const { count } = await supabase
@@ -62,6 +66,7 @@ const Gallery = () => {
         title,
         description: description || null,
         created_by: user!.id,
+        family_branch: familyBranch || null,
       });
       if (error) throw error;
     },
@@ -70,6 +75,7 @@ const Gallery = () => {
       setNewAlbumOpen(false);
       setTitle("");
       setDescription("");
+      setFamilyBranch("");
       toast({ title: "Album created! 🎉" });
     },
     onError: (e: any) => toast({ title: "Oops! 😅", description: e.message, variant: "destructive" }),
@@ -84,6 +90,18 @@ const Gallery = () => {
         <AlbumView album={selectedAlbum} user={user} onBack={() => setSelectedAlbum(null)} />
       </div>
     );
+  }
+
+  // Group albums by family branch
+  const albumsByFamily: Record<string, Album[]> = {};
+  const unassigned: Album[] = [];
+  for (const album of albums) {
+    if (album.family_branch && FAMILY_BRANCHES.includes(album.family_branch as any)) {
+      if (!albumsByFamily[album.family_branch]) albumsByFamily[album.family_branch] = [];
+      albumsByFamily[album.family_branch].push(album);
+    } else {
+      unassigned.push(album);
+    }
   }
 
   return (
@@ -114,6 +132,19 @@ const Gallery = () => {
                 }}
                 className="space-y-4"
               >
+                <div className="space-y-2">
+                  <Label className="font-display">Family 👨‍👩‍👧‍👦</Label>
+                  <Select value={familyBranch} onValueChange={setFamilyBranch}>
+                    <SelectTrigger className="rounded-xl">
+                      <SelectValue placeholder="Select a family branch" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FAMILY_BRANCHES.map((name) => (
+                        <SelectItem key={name} value={name}>{name}'s Family</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="space-y-2">
                   <Label className="font-display">Album Name ✏️</Label>
                   <Input
@@ -162,46 +193,83 @@ const Gallery = () => {
             <p className="text-muted-foreground font-display">Create your first album to start sharing memories 🌟</p>
           </motion.div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <AnimatePresence>
-              {albums.map((album, i) => (
-                <motion.div
-                  key={album.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1, type: "spring", bounce: 0.3 }}
-                  whileHover={{ y: -6, scale: 1.02 }}
-                  onClick={() => setSelectedAlbum(album)}
-                  className="bg-card rounded-2xl border-2 border-border shadow-md overflow-hidden cursor-pointer"
-                >
-                  <div className="aspect-video bg-muted flex items-center justify-center relative overflow-hidden">
-                    {album.cover_url ? (
-                      <img src={album.cover_url} alt={album.title} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="flex flex-col items-center text-muted-foreground">
-                        <FolderOpen className="h-12 w-12 mb-2" />
-                        <span className="font-display text-sm">No cover yet</span>
-                      </div>
-                    )}
+          <div className="space-y-12">
+            {FAMILY_BRANCHES.map((branch) => {
+              const branchAlbums = albumsByFamily[branch] || [];
+              return (
+                <section key={branch}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <h2 className="font-display text-2xl font-bold">{branch}'s Family</h2>
+                    <span className="text-sm text-muted-foreground font-display">
+                      {branchAlbums.length} album{branchAlbums.length !== 1 ? "s" : ""}
+                    </span>
                   </div>
-                  <div className="p-4">
-                    <h3 className="font-display text-lg font-semibold">{album.title}</h3>
-                    {album.description && (
-                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{album.description}</p>
-                    )}
-                    <div className="flex items-center gap-2 mt-3 text-sm text-muted-foreground font-display">
-                      <Image className="h-4 w-4" />
-                      <span>{album.media_count} items</span>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+                  {branchAlbums.length === 0 ? (
+                    <p className="text-muted-foreground font-display text-sm py-4 pl-1">
+                      No albums yet for this family. Be the first to add one! 🌟
+                    </p>
+                  ) : (
+                    <AlbumGrid albums={branchAlbums} onSelect={setSelectedAlbum} />
+                  )}
+                </section>
+              );
+            })}
+
+            {unassigned.length > 0 && (
+              <section>
+                <div className="flex items-center gap-3 mb-4">
+                  <h2 className="font-display text-2xl font-bold">General 📂</h2>
+                  <span className="text-sm text-muted-foreground font-display">
+                    {unassigned.length} album{unassigned.length !== 1 ? "s" : ""}
+                  </span>
+                </div>
+                <AlbumGrid albums={unassigned} onSelect={setSelectedAlbum} />
+              </section>
+            )}
           </div>
         )}
       </main>
     </div>
   );
 };
+
+const AlbumGrid = ({ albums, onSelect }: { albums: Album[]; onSelect: (a: Album) => void }) => (
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <AnimatePresence>
+      {albums.map((album, i) => (
+        <motion.div
+          key={album.id}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: i * 0.1, type: "spring", bounce: 0.3 }}
+          whileHover={{ y: -6, scale: 1.02 }}
+          onClick={() => onSelect(album)}
+          className="bg-card rounded-2xl border-2 border-border shadow-md overflow-hidden cursor-pointer"
+        >
+          <div className="aspect-video bg-muted flex items-center justify-center relative overflow-hidden">
+            {album.cover_url ? (
+              <img src={album.cover_url} alt={album.title} className="w-full h-full object-cover" />
+            ) : (
+              <div className="flex flex-col items-center text-muted-foreground">
+                <FolderOpen className="h-12 w-12 mb-2" />
+                <span className="font-display text-sm">No cover yet</span>
+              </div>
+            )}
+          </div>
+          <div className="p-4">
+            <h3 className="font-display text-lg font-semibold">{album.title}</h3>
+            {album.description && (
+              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{album.description}</p>
+            )}
+            <div className="flex items-center gap-2 mt-3 text-sm text-muted-foreground font-display">
+              <Image className="h-4 w-4" />
+              <span>{album.media_count} items</span>
+            </div>
+          </div>
+        </motion.div>
+      ))}
+    </AnimatePresence>
+  </div>
+);
 
 export default Gallery;
