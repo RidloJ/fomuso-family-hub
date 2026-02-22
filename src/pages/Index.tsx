@@ -1,131 +1,248 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Heart, Camera, Calendar, TrendingUp, Users, Sparkles, Star } from "lucide-react";
+import { Heart, Camera, Calendar, TrendingUp, Users, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import heroFamily1 from "@/assets/hero-family-1.jpg";
+import heroFamily2 from "@/assets/hero-family-2.jpg";
+import heroFamily3 from "@/assets/hero-family-3.jpg";
+import heroFamily4 from "@/assets/hero-family-4.jpg";
 
 const features = [
-  { icon: Camera, title: "📸 Family Gallery", desc: "Share awesome photos & videos of our best moments!", color: "bg-fun-purple/20" },
-  { icon: Calendar, title: "🎉 Events & Parties", desc: "Never miss a birthday, BBQ, or family game night!", color: "bg-fun-blue/20" },
-  { icon: TrendingUp, title: "🚀 Family Projects", desc: "Work together on cool goals and track our progress!", color: "bg-warm-orange/20" },
-  { icon: Users, title: "💬 Stay Connected", desc: "Our own private space to chat and share updates!", color: "bg-warm-green/20" },
+  { icon: Camera, title: "📸 Family Gallery", desc: "Share awesome photos & videos of our best moments!" },
+  { icon: Calendar, title: "🎉 Events & Parties", desc: "Never miss a birthday, BBQ, or family game night!" },
+  { icon: TrendingUp, title: "🚀 Family Projects", desc: "Work together on cool goals and track our progress!" },
+  { icon: Users, title: "💬 Stay Connected", desc: "Our own private space to chat and share updates!" },
 ];
-
-const floatingEmojis = ["🌟", "💖", "🎈", "🦋", "🌈", "✨"];
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background overflow-hidden relative">
-      {/* Floating decorative emojis */}
-      {floatingEmojis.map((emoji, i) => (
-        <motion.div
-          key={i}
-          className="absolute text-2xl md:text-3xl pointer-events-none select-none"
-          style={{
-            left: `${10 + i * 15}%`,
-            top: `${5 + (i % 3) * 8}%`,
-          }}
-          animate={{
-            y: [0, -15, 0],
-            rotate: [0, 10, -10, 0],
-          }}
-          transition={{
-            duration: 3 + i * 0.5,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: i * 0.3,
-          }}
-        >
-          {emoji}
-        </motion.div>
-      ))}
-
-      {/* Nav */}
-      <nav className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto relative z-10">
+    <div className="min-h-screen bg-background">
+      {/* ─── Minimal Nav ─── */}
+      <nav className="flex items-center justify-between px-8 py-6 max-w-7xl mx-auto">
         <div className="flex items-center gap-2">
-          <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity }}>
-            <Heart className="h-7 w-7 text-primary fill-primary" />
-          </motion.div>
-          <span className="font-display text-2xl font-bold text-foreground">Fomuso Family 🏠</span>
+          <Heart className="h-6 w-6 text-primary fill-primary" />
+          <span className="font-display text-xl font-semibold text-foreground tracking-tight">
+            Fomuso Family
+          </span>
         </div>
-        <div className="flex gap-3">
-          <Button variant="ghost" asChild className="rounded-full font-display">
-            <Link to="/login">Log in</Link>
-          </Button>
-          <Button asChild className="rounded-full font-display shadow-lg hover:shadow-xl transition-shadow">
-            <Link to="/signup">Join Us! 🎉</Link>
-          </Button>
+        <div className="hidden sm:flex items-center gap-8 font-display text-sm tracking-wide">
+          <a href="#about" className="text-muted-foreground hover:text-foreground transition-colors">About</a>
+          <a href="#gallery" className="text-muted-foreground hover:text-foreground transition-colors">Gallery</a>
+          <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">Features</a>
+          <Link to="/login" className="text-muted-foreground hover:text-foreground transition-colors">Sign In</Link>
         </div>
+        <Button asChild className="rounded-full font-display shadow-lg sm:hidden">
+          <Link to="/login">Sign In</Link>
+        </Button>
       </nav>
 
-      {/* Hero */}
-      <section className="px-6 pt-12 pb-20 max-w-4xl mx-auto text-center relative z-10">
+      {/* ─── Hero Section ─── */}
+      <section className="text-center px-6 pt-16 pb-8 max-w-4xl mx-auto">
         <motion.div
-          initial={{ opacity: 0, y: 30, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.7, type: "spring", bounce: 0.4 }}
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
         >
-          <motion.div
-            className="text-6xl md:text-7xl mb-4"
-            animate={{ rotate: [0, 5, -5, 0] }}
-            transition={{ duration: 4, repeat: Infinity }}
-          >
-            🏡
-          </motion.div>
-          <h1 className="font-display text-5xl md:text-6xl font-bold text-foreground leading-tight mb-6">
-            Welcome to the{" "}
-            <span className="text-primary relative">
-              Fomuso Family
-              <motion.span
-                className="absolute -top-2 -right-6"
-                animate={{ rotate: [0, 20, 0], scale: [1, 1.3, 1] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-              >
-                <Sparkles className="h-6 w-6 text-warm-orange" />
-              </motion.span>
-            </span>{" "}
-            Hub! 🎊
+          <h1 className="font-display text-5xl md:text-7xl font-bold text-foreground leading-[1.1] tracking-tight mb-6">
+            The Fomuso Family<br />
+            <span className="text-primary">Hub</span> 🏡
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-            Our super fun, cozy corner of the internet where we share memories 📸,
-            plan awesome events 🎈, work on cool projects together 🚀,
-            and stay close no matter where we are! 💕
+          <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto mb-10 font-body leading-relaxed">
+            Our cozy corner of the internet — where we share memories, plan adventures, and stay close no matter the distance 💕
           </p>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button size="lg" asChild className="text-base px-8 rounded-full shadow-lg font-display text-lg">
-                <Link to="/signup">Let's Go! 🚀</Link>
-              </Button>
-            </motion.div>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button size="lg" variant="outline" asChild className="text-base px-8 rounded-full font-display text-lg">
-                <Link to="/login">I'm Already In ✨</Link>
-              </Button>
-            </motion.div>
-          </div>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button
+              asChild
+              size="lg"
+              className="rounded-full h-20 w-20 md:h-24 md:w-24 text-base font-display shadow-xl hover:shadow-2xl transition-shadow"
+            >
+              <Link to="/signup" className="flex flex-col items-center leading-tight">
+                <span className="text-xs md:text-sm">Join</span>
+                <span className="text-xs md:text-sm">Us! 🎉</span>
+              </Link>
+            </Button>
+          </motion.div>
         </motion.div>
       </section>
 
-      {/* Features */}
-      <section className="px-6 pb-20 max-w-5xl mx-auto relative z-10">
+      {/* ─── Photo Strip ─── */}
+      <section className="py-8">
+        <div className="flex gap-3 md:gap-4 px-0 overflow-hidden">
+          {[heroFamily2, heroFamily3, heroFamily1, heroFamily4].map((src, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 + i * 0.15, duration: 0.6 }}
+              className={`flex-1 ${i === 2 ? 'flex-[1.5]' : ''}`}
+            >
+              <img
+                src={src}
+                alt={`Family moment ${i + 1}`}
+                className="w-full h-[300px] md:h-[500px] object-cover"
+                loading="lazy"
+              />
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── About Section ─── */}
+      <section id="about" className="max-w-6xl mx-auto px-8 py-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <img
+              src={heroFamily4}
+              alt="The Fomuso Family"
+              className="rounded-2xl shadow-lg w-72 h-80 object-cover mx-auto md:mx-0"
+            />
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
+            <h2 className="font-display text-3xl md:text-4xl font-bold mb-6">
+              Hey There, We're the Fomusos! 👋
+            </h2>
+            <p className="text-muted-foreground leading-relaxed text-lg mb-6">
+              Our family hub is all about slowing down, enjoying each other's company,
+              and capturing the beautiful moments that make us who we are.
+              Whether it's a big birthday bash 🎂 or a quiet Sunday afternoon ☀️,
+              this is where we keep our memories alive forever.
+            </p>
+            <Button variant="outline" asChild className="rounded-full font-display">
+              <Link to="/signup">
+                Learn More <ArrowRight className="h-4 w-4 ml-2" />
+              </Link>
+            </Button>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ─── Gallery Preview ─── */}
+      <section id="gallery" className="bg-muted/50 py-20">
+        <div className="max-w-6xl mx-auto px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">Our Gallery 📸</h2>
+            <p className="text-muted-foreground text-lg max-w-lg mx-auto">
+              A glimpse into our family's favorite moments — sign in to see and share more!
+            </p>
+          </motion.div>
+
+          {/* Album-style showcase */}
+          <div className="space-y-16">
+            {/* Album 1 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+              >
+                <h3 className="font-display text-2xl font-semibold mb-3">Family Moments 🥰</h3>
+                <p className="text-muted-foreground mb-4">
+                  The laughs, the hugs, the silly faces — these are the moments we never want to forget.
+                </p>
+                <Button variant="link" asChild className="font-display p-0 text-primary">
+                  <Link to="/login">View Album <ArrowRight className="h-4 w-4 ml-1" /></Link>
+                </Button>
+              </motion.div>
+              <div className="grid grid-cols-2 gap-3">
+                <motion.img
+                  src={heroFamily1}
+                  alt="Family moments"
+                  className="rounded-xl w-full h-48 object-cover shadow-md"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.1 }}
+                />
+                <motion.img
+                  src={heroFamily4}
+                  alt="Family moments"
+                  className="rounded-xl w-full h-48 object-cover shadow-md"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2 }}
+                />
+              </div>
+            </div>
+
+            {/* Album 2 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+              <div className="grid grid-cols-2 gap-3 order-2 md:order-1">
+                <motion.img
+                  src={heroFamily3}
+                  alt="Adventures"
+                  className="rounded-xl w-full h-48 object-cover shadow-md"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.1 }}
+                />
+                <motion.img
+                  src={heroFamily2}
+                  alt="Adventures"
+                  className="rounded-xl w-full h-48 object-cover shadow-md"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2 }}
+                />
+              </div>
+              <motion.div
+                className="order-1 md:order-2"
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+              >
+                <h3 className="font-display text-2xl font-semibold mb-3">Adventures & Fun 🌈</h3>
+                <p className="text-muted-foreground mb-4">
+                  From outdoor explorations to cozy game nights — our family knows how to have a great time!
+                </p>
+                <Button variant="link" asChild className="font-display p-0 text-primary">
+                  <Link to="/login">View Album <ArrowRight className="h-4 w-4 ml-1" /></Link>
+                </Button>
+              </motion.div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Features / What We Do ─── */}
+      <section id="features" className="max-w-5xl mx-auto px-8 py-20">
         <motion.h2
-          className="font-display text-3xl font-bold text-center mb-10"
+          className="font-display text-3xl md:text-4xl font-bold text-center mb-12"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
         >
-          What Can We Do Here? 🤔
+          What's Inside Our Hub? 🤔
         </motion.h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {features.map((f, i) => (
             <motion.div
               key={f.title}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 + i * 0.15, duration: 0.5, type: "spring", bounce: 0.3 }}
-              whileHover={{ y: -8, scale: 1.03 }}
-              className="bg-card rounded-2xl p-6 border-2 border-border shadow-md text-center cursor-default"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1, type: "spring", bounce: 0.3 }}
+              whileHover={{ y: -6 }}
+              className="bg-card rounded-2xl p-6 border-2 border-border shadow-sm text-center"
             >
-              <div className={`w-14 h-14 rounded-2xl ${f.color} flex items-center justify-center mx-auto mb-4`}>
+              <div className="w-14 h-14 rounded-2xl bg-accent flex items-center justify-center mx-auto mb-4">
                 <f.icon className="h-7 w-7 text-primary" />
               </div>
               <h3 className="font-display text-lg font-semibold mb-2">{f.title}</h3>
@@ -135,31 +252,66 @@ const Index = () => {
         </div>
       </section>
 
-      {/* About */}
-      <section className="px-6 pb-20 max-w-3xl mx-auto text-center relative z-10">
+      {/* ─── Testimonial / Quote ─── */}
+      <section className="bg-muted/50 py-20">
+        <div className="max-w-3xl mx-auto px-8 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <img
+              src={heroFamily1}
+              alt="Family"
+              className="w-32 h-20 object-cover rounded-lg mx-auto mb-8 shadow-md"
+            />
+            <blockquote className="text-xl md:text-2xl font-display text-foreground leading-relaxed italic mb-6">
+              "Family is not an important thing. It's everything. 💖 This hub keeps us close no matter where life takes us."
+            </blockquote>
+            <p className="font-display text-muted-foreground font-semibold">— The Fomuso Family</p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ─── CTA Section ─── */}
+      <section className="py-20 text-center px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="bg-card rounded-3xl p-8 border-2 border-border shadow-md"
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="max-w-lg mx-auto"
         >
-          <h2 className="font-display text-3xl font-bold mb-4">About the Fomusos 💖</h2>
-          <p className="text-muted-foreground leading-relaxed text-lg">
-            The Fomuso Family Hub is our own little digital home 🏠 — a place where every photo 📸,
-            every milestone 🏆, and every family project lives together. Built with lots of love ❤️
-            for our amazing family to stay close, have fun, and celebrate life's awesome moments
-            together! 🎉
+          <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+            Ready to Join the Fun? 🎊
+          </h2>
+          <p className="text-muted-foreground text-lg mb-8">
+            Sign up now and become part of our family's digital home. We can't wait to have you! 🤗
           </p>
+          <div className="flex gap-4 justify-center flex-wrap">
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button size="lg" asChild className="rounded-full font-display text-lg px-10 shadow-xl">
+                <Link to="/signup">Sign Up 🚀</Link>
+              </Button>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button size="lg" variant="outline" asChild className="rounded-full font-display text-lg px-10">
+                <Link to="/login">Sign In ✨</Link>
+              </Button>
+            </motion.div>
+          </div>
         </motion.div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t-2 border-border py-8 text-center text-sm text-muted-foreground relative z-10">
-        <div className="flex items-center justify-center gap-2">
-          <motion.div animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 1.5, repeat: Infinity }}>
-            <Heart className="h-4 w-4 text-primary fill-primary" />
-          </motion.div>
-          <span className="font-display">Fomuso Family Hub — Made with love & fun! ✨</span>
+      {/* ─── Footer ─── */}
+      <footer className="border-t border-border py-10 text-center">
+        <div className="max-w-6xl mx-auto px-8">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Heart className="h-5 w-5 text-primary fill-primary" />
+            <span className="font-display text-lg font-semibold">Fomuso Family Hub</span>
+          </div>
+          <p className="text-sm text-muted-foreground font-display">
+            Made with love & lots of fun! ✨ © {new Date().getFullYear()}
+          </p>
         </div>
       </footer>
     </div>
