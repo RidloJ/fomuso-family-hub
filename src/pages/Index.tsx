@@ -136,28 +136,34 @@ const Index = () => {
       </nav>
 
       {/* ─── Hero Section ─── */}
-      <section className="text-center px-6 pt-16 pb-8 max-w-4xl mx-auto">
+      <section className="text-center px-6 pt-20 pb-12 max-w-3xl mx-auto flex flex-col items-center">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
+          className="flex flex-col items-center"
         >
-          <h1 className="font-display text-5xl md:text-7xl font-bold text-foreground leading-[1.1] tracking-tight mb-6">
+          <h1 className="font-display text-5xl md:text-7xl font-bold text-foreground leading-[1.1] tracking-tight mb-4">
             The Fomuso Family<br />
             <span className="text-primary">Hub</span> 🏡
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto mb-10 font-body leading-relaxed">
+          <p className="text-lg md:text-xl text-muted-foreground max-w-md mx-auto mb-8 font-body leading-relaxed">
             Our cozy corner of the internet — where we share memories, plan adventures, and stay close no matter the distance 💕
           </p>
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <motion.div
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.95 }}
+            animate={{ boxShadow: ["0 0 0px hsl(var(--primary))", "0 0 25px hsl(var(--primary) / 0.5)", "0 0 0px hsl(var(--primary))"] }}
+            transition={{ boxShadow: { duration: 2, repeat: Infinity }, scale: { duration: 0.2 } }}
+            className="rounded-full"
+          >
             <Button
               asChild
               size="lg"
-              className="rounded-full h-20 w-20 md:h-24 md:w-24 text-base font-display shadow-xl hover:shadow-2xl transition-shadow"
+              className="rounded-full px-10 py-6 text-lg md:text-xl font-display font-bold bg-primary text-primary-foreground shadow-2xl hover:shadow-primary/40 transition-all"
             >
-              <Link to="/signup" className="flex flex-col items-center leading-tight">
-                <span className="text-xs md:text-sm">Join</span>
-                <span className="text-xs md:text-sm">Us! 🎉</span>
+              <Link to="/signup">
+                Join Us! 🎉
               </Link>
             </Button>
           </motion.div>
