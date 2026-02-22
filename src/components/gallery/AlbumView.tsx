@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -48,6 +49,7 @@ const AlbumView = ({ album, user, onBack }: Props) => {
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [captions, setCaptions] = useState<string[]>([]);
   const [captionDialogOpen, setCaptionDialogOpen] = useState(false);
+  const [mediaToDelete, setMediaToDelete] = useState<string | null>(null);
 
   const { data: mediaItems = [], isLoading } = useQuery({
     queryKey: ["media", album.id],
@@ -358,7 +360,7 @@ const AlbumView = ({ album, user, onBack }: Props) => {
                   <MessageCircle className="h-5 w-5 text-muted-foreground ml-2" />
                   <span className="font-display text-sm text-muted-foreground">{comments.length}</span>
                   {selectedMedia.uploaded_by === user.id && (
-                    <Button variant="ghost" size="icon" className="ml-auto rounded-full" onClick={() => deleteMedia.mutate(selectedMedia.id)}>
+                    <Button variant="ghost" size="icon" className="ml-auto rounded-full" onClick={() => setMediaToDelete(selectedMedia.id)}>
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   )}
@@ -385,6 +387,27 @@ const AlbumView = ({ album, user, onBack }: Props) => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete photo confirmation */}
+      <AlertDialog open={!!mediaToDelete} onOpenChange={(open) => !open && setMediaToDelete(null)}>
+        <AlertDialogContent className="rounded-3xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display">Delete this photo? 🗑️</AlertDialogTitle>
+            <AlertDialogDescription className="font-display">
+              This action cannot be undone. The photo will be permanently removed from the album.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-full font-display">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="rounded-full font-display bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => { if (mediaToDelete) deleteMedia.mutate(mediaToDelete); setMediaToDelete(null); }}
+            >
+              Delete Photo
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   );
 };
