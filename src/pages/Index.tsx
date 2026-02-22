@@ -273,35 +273,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ─── CTA Section ─── */}
-      <section className="py-20 text-center px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="max-w-lg mx-auto"
-        >
-          <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-            Ready to Join the Fun? 🎊
-          </h2>
-          <p className="text-muted-foreground text-lg mb-8">
-            Sign up now and become part of our family's digital home. We can't wait to have you! 🤗
-          </p>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button size="lg" asChild className="rounded-full font-display text-lg px-10 shadow-xl">
-                <Link to="/signup">Sign Up 🚀</Link>
-              </Button>
-            </motion.div>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button size="lg" variant="outline" asChild className="rounded-full font-display text-lg px-10">
-                <Link to="/login">Sign In ✨</Link>
-              </Button>
-            </motion.div>
-          </div>
-        </motion.div>
-      </section>
-
       {/* ─── Footer ─── */}
       <footer className="border-t border-border py-10 text-center">
         <div className="max-w-6xl mx-auto px-8">
