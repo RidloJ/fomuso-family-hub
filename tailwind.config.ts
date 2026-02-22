@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["Playfair Display", "serif"],
+        display: ["Fredoka", "sans-serif"],
         body: ["Nunito", "sans-serif"],
       },
       colors: {
@@ -65,6 +65,10 @@ export default {
           green: "hsl(var(--warm-green))",
           orange: "hsl(var(--warm-orange))",
           cream: "hsl(var(--warm-cream))",
+        },
+        fun: {
+          purple: "hsl(var(--fun-purple))",
+          blue: "hsl(var(--fun-blue))",
         },
       },
       borderRadius: {
