@@ -1,5 +1,15 @@
 import { lastDayOfMonth, previousSunday, isSunday, format } from "date-fns";
 
+export const BIRTH_ORDER = ["Yvonne", "Solo", "Bankom", "Nah", "Nandet"];
+
+export function sortByBirthOrder<T extends { full_name: string }>(members: T[]): T[] {
+  return [...members].sort((a, b) => {
+    const ai = BIRTH_ORDER.indexOf(a.full_name);
+    const bi = BIRTH_ORDER.indexOf(b.full_name);
+    return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+  });
+}
+
 export function getLastSunday(year: number, month: number): Date {
   const last = lastDayOfMonth(new Date(year, month - 1));
   return isSunday(last) ? last : previousSunday(last);
