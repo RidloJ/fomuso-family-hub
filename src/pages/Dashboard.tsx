@@ -204,9 +204,9 @@ const NjangiWidget = ({ user }: { user: any }) => {
         <CardContent>
           <Progress value={pct} className="h-2 mb-3" />
           <div className="flex flex-wrap items-center gap-4 mb-3 text-sm font-display">
-            <span>Expected: <strong>${expected.toLocaleString()}</strong></span>
-            <span>Remitted: <strong className="text-primary">${remitted.toLocaleString()}</strong></span>
-            <span>Left: <strong>${balance.toLocaleString()}</strong></span>
+            <span>Expected: <strong>{expected.toLocaleString()} FCFA</strong></span>
+            <span>Remitted: <strong className="text-primary">{remitted.toLocaleString()} FCFA</strong></span>
+            <span>Left: <strong>{balance.toLocaleString()} FCFA</strong></span>
             <Badge className={`${sc.color} text-xs`}>{sc.emoji} {sc.label}</Badge>
             <span className="text-muted-foreground text-xs">{daysLeft >= 0 ? `${daysLeft} days left` : "Past deadline"}</span>
           </div>

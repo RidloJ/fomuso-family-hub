@@ -119,15 +119,15 @@ const Njangi = () => {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                 <div>
                   <p className="text-xs text-muted-foreground font-display">Expected</p>
-                  <p className="text-xl font-bold font-display">${expectedTotal.toLocaleString()}</p>
+                  <p className="text-xl font-bold font-display">{expectedTotal.toLocaleString()} FCFA</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground font-display">Remitted</p>
-                  <p className="text-xl font-bold font-display text-primary">${totalRemitted.toLocaleString()}</p>
+                  <p className="text-xl font-bold font-display text-primary">{totalRemitted.toLocaleString()} FCFA</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground font-display">Left</p>
-                  <p className="text-xl font-bold font-display">${balanceLeft.toLocaleString()}</p>
+                  <p className="text-xl font-bold font-display">{balanceLeft.toLocaleString()} FCFA</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground font-display">Status</p>
@@ -189,9 +189,9 @@ const Njangi = () => {
                       </Button>
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-xs font-display">
-                      <div><p className="text-muted-foreground">Expected</p><p className="font-semibold">${expected}</p></div>
-                      <div><p className="text-muted-foreground">Paid</p><p className="font-semibold text-primary">${paid}</p></div>
-                      <div><p className="text-muted-foreground">Left</p><p className="font-semibold">${memberBalance}</p></div>
+                      <div><p className="text-muted-foreground">Expected</p><p className="font-semibold">{expected} FCFA</p></div>
+                      <div><p className="text-muted-foreground">Paid</p><p className="font-semibold text-primary">{paid} FCFA</p></div>
+                      <div><p className="text-muted-foreground">Left</p><p className="font-semibold">{memberBalance} FCFA</p></div>
                     </div>
                   </CardContent>
                 </Card>
@@ -230,9 +230,9 @@ const Njangi = () => {
                       >
                         <td className="p-3 font-semibold">{name}</td>
                         <td className="p-3 text-muted-foreground">{deadline}</td>
-                        <td className="p-3 text-right">${Number(mp?.expected_total || 0).toLocaleString()}</td>
-                        <td className="p-3 text-right text-primary">${Number(mp?.total_remitted || 0).toLocaleString()}</td>
-                        <td className="p-3 text-right">${Number(mp?.balance_left || 0).toLocaleString()}</td>
+                        <td className="p-3 text-right">{Number(mp?.expected_total || 0).toLocaleString()} FCFA</td>
+                        <td className="p-3 text-right text-primary">{Number(mp?.total_remitted || 0).toLocaleString()} FCFA</td>
+                        <td className="p-3 text-right">{Number(mp?.balance_left || 0).toLocaleString()} FCFA</td>
                         <td className="p-3 text-center"><Badge className={`${scc.color} text-xs`}>{scc.emoji} {scc.label}</Badge></td>
                       </tr>
                     );
@@ -290,7 +290,7 @@ const RecordPaymentForm = ({ periodId, members, recordPayment, toast, onClose }:
           </Select>
         </div>
         <div>
-          <Label className="font-display">Amount ($)</Label>
+          <Label className="font-display">Amount (FCFA)</Label>
           <Input type="number" min="1" value={amount} onChange={(e) => setAmount(e.target.value)} required />
         </div>
         <div>
@@ -342,7 +342,7 @@ const RegisterView = ({ payments }: { payments: any[] }) => (
             <tr key={p.id} className="border-b">
               <td className="p-2">{p.payment_date}</td>
               <td className="p-2">{p.njangi_members?.full_name}</td>
-              <td className="p-2 text-right font-semibold">${Number(p.amount).toLocaleString()}</td>
+              <td className="p-2 text-right font-semibold">{Number(p.amount).toLocaleString()} FCFA</td>
               <td className="p-2 capitalize">{p.payment_method.replace("_", " ")}</td>
               <td className="p-2 text-muted-foreground">{p.note || "—"}</td>
             </tr>
