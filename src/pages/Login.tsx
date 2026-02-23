@@ -64,6 +64,9 @@ const Login = () => {
                   {loading ? "Signing in... ⏳" : "Let's Go! 🚀"}
                 </Button>
               </motion.div>
+              <Link to="/forgot-password" className="text-sm text-primary hover:underline font-display font-semibold">
+                Forgot your password? 🤔
+              </Link>
               <p className="text-sm text-muted-foreground">
                 New to the family?{" "}
                 <Link to="/signup" className="text-primary hover:underline font-display font-semibold">Join us! 🎉</Link>
