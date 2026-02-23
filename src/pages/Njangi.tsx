@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import AppNav from "@/components/AppNav";
 import { useNjangiMembers, useNjangiPeriod, useNjangiPayments, useRecordPayment, useAllNjangiPeriods } from "@/hooks/useNjangi";
-import { getDeadlineLabel, getDaysToDeadline, statusConfig, MONTH_NAMES, PAYMENT_METHODS, getLastSunday } from "@/lib/njangi-utils";
+import { getDeadlineLabel, getDaysToDeadline, statusConfig, MONTH_NAMES, PAYMENT_METHODS, getLastSunday, sortByBirthOrder } from "@/lib/njangi-utils";
 
 const now = new Date();
 
@@ -169,7 +169,7 @@ const Njangi = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <h2 className="font-display text-lg font-bold mb-4">👨‍👩‍👧‍👦 Member Contributions</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
-            {members.filter((m: any) => m.active).map((m: any) => {
+            {sortByBirthOrder(members.filter((m: any) => m.active)).map((m: any) => {
               const paid = memberPaid(m.id);
               const expected = Number(m.expected_monthly_amount || 0);
               const memberBalance = Math.max(0, expected - paid);
@@ -283,7 +283,7 @@ const RecordPaymentForm = ({ periodId, members, recordPayment, toast, onClose }:
           <Select value={memberId} onValueChange={setMemberId}>
             <SelectTrigger><SelectValue placeholder="Select member" /></SelectTrigger>
             <SelectContent>
-              {members.filter((m: any) => m.active).map((m: any) => (
+              {sortByBirthOrder(members.filter((m: any) => m.active)).map((m: any) => (
                 <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>
               ))}
             </SelectContent>
