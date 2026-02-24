@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Heart, LogOut, Camera, Home, Calendar, Users, PiggyBank } from "lucide-react";
+import { Heart, LogOut, Camera, Home, Calendar, Users, PiggyBank, Settings } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,9 +49,16 @@ const AppNav = () => {
             ))}
           </div>
         </div>
-        <Button variant="ghost" size="sm" onClick={handleLogout} className="rounded-full font-display text-xs sm:text-sm">
-          <LogOut className="h-4 w-4 mr-1 sm:mr-2" /> <span className="hidden sm:inline">Bye 👋</span><span className="sm:hidden">👋</span>
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="sm" asChild className="rounded-full font-display text-xs sm:text-sm">
+            <Link to="/settings">
+              <Settings className="h-4 w-4 mr-1" /> <span className="hidden sm:inline">Settings ⚙️</span><span className="sm:hidden">⚙️</span>
+            </Link>
+          </Button>
+          <Button variant="ghost" size="sm" onClick={handleLogout} className="rounded-full font-display text-xs sm:text-sm">
+            <LogOut className="h-4 w-4 mr-1 sm:mr-2" /> <span className="hidden sm:inline">Bye 👋</span><span className="sm:hidden">👋</span>
+          </Button>
+        </div>
       </nav>
 
       {/* Mobile bottom nav */}
