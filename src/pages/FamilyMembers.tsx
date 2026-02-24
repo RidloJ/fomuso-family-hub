@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Users, Calendar, Search } from "lucide-react";
+import { UserPlus, Users, Calendar, Search, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 
@@ -32,6 +32,7 @@ const FamilyMembers = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [dob, setDob] = useState("");
@@ -41,6 +42,7 @@ const FamilyMembers = () => {
   const [search, setSearch] = useState("");
 
   const parentDisabled = PARENT_DISABLED_TYPES.includes(memberType);
+  const isEditing = !!editingId;
 
   const { data: members = [], isLoading } = useQuery({
     queryKey: ["family-members"],
@@ -79,6 +81,33 @@ const FamilyMembers = () => {
     },
   });
 
+  const updateMember = useMutation({
+    mutationFn: async () => {
+      if (!editingId) return;
+      const { error } = await supabase
+        .from("family_members")
+        .update({
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          date_of_birth: dob,
+          father: parentDisabled ? null : (father.trim() || null),
+          mother: parentDisabled ? null : (mother.trim() || null),
+          member_type: memberType,
+        } as any)
+        .eq("id", editingId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["family-members"] });
+      toast({ title: "Member updated! ✏️", description: `${firstName} ${lastName} has been updated.` });
+      resetForm();
+      setDialogOpen(false);
+    },
+    onError: (err: any) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
+
   const resetForm = () => {
     setFirstName("");
     setLastName("");
@@ -86,6 +115,18 @@ const FamilyMembers = () => {
     setFather("");
     setMother("");
     setMemberType("children");
+    setEditingId(null);
+  };
+
+  const handleEdit = (member: any) => {
+    setEditingId(member.id);
+    setFirstName(member.first_name);
+    setLastName(member.last_name);
+    setDob(member.date_of_birth);
+    setFather(member.father || "");
+    setMother(member.mother || "");
+    setMemberType(member.member_type || "children");
+    setDialogOpen(true);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -94,12 +135,23 @@ const FamilyMembers = () => {
       toast({ title: "Missing info", description: "First name, last name, and date of birth are required.", variant: "destructive" });
       return;
     }
-    addMember.mutate();
+    if (isEditing) {
+      updateMember.mutate();
+    } else {
+      addMember.mutate();
+    }
+  };
+
+  const handleDialogChange = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) resetForm();
   };
 
   if (authLoading) {
     return <div className="min-h-screen flex items-center justify-center bg-background text-foreground">Loading... ⏳</div>;
   }
+
+  const isPending = addMember.isPending || updateMember.isPending;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -115,7 +167,7 @@ const FamilyMembers = () => {
               <Users className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />
               <h1 className="font-display text-2xl sm:text-3xl font-bold">Family Registry 👨‍👩‍👧‍👦</h1>
             </div>
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
               <DialogTrigger asChild>
                 <Button className="rounded-full font-display">
                   <UserPlus className="h-4 w-4 mr-2" /> Add Member
@@ -123,7 +175,9 @@ const FamilyMembers = () => {
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                  <DialogTitle className="font-display text-xl">Register New Family Member 🆕</DialogTitle>
+                  <DialogTitle className="font-display text-xl">
+                    {isEditing ? "Edit Family Member ✏️" : "Register New Family Member 🆕"}
+                  </DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4 mt-2">
                   <div className="grid grid-cols-2 gap-4">
@@ -169,8 +223,10 @@ const FamilyMembers = () => {
                       <Input value={mother} onChange={(e) => setMother(e.target.value)} placeholder="Mother's name" className="rounded-xl" disabled={parentDisabled} />
                     </div>
                   </div>
-                  <Button type="submit" className="w-full rounded-full font-display" disabled={addMember.isPending}>
-                    {addMember.isPending ? "Registering... ⏳" : "Register Member ✅"}
+                  <Button type="submit" className="w-full rounded-full font-display" disabled={isPending}>
+                    {isPending
+                      ? (isEditing ? "Updating... ⏳" : "Registering... ⏳")
+                      : (isEditing ? "Save Changes ✅" : "Register Member ✅")}
                   </Button>
                 </form>
               </DialogContent>
@@ -217,6 +273,7 @@ const FamilyMembers = () => {
                         <TableHead className="font-display">Date of Birth</TableHead>
                         <TableHead className="font-display">Father</TableHead>
                         <TableHead className="font-display">Mother</TableHead>
+                        <TableHead className="font-display w-12"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -246,6 +303,17 @@ const FamilyMembers = () => {
                           </TableCell>
                           <TableCell>{member.father || "—"}</TableCell>
                           <TableCell>{member.mother || "—"}</TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 rounded-full"
+                              onClick={() => handleEdit(member)}
+                              title="Edit member"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
