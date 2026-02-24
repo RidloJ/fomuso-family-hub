@@ -16,10 +16,10 @@ import { format } from "date-fns";
 import { motion } from "framer-motion";
 
 const MEMBER_TYPES = [
-  { value: "grandpa", label: "Grand Pa 👴" },
-  { value: "grandma", label: "Grand Ma 👵" },
-  { value: "children", label: "Children 👨‍👩‍👧" },
-  { value: "grandchildren", label: "Grand Children 👶" },
+  { value: "grandpa", label: "Grand Father 👴" },
+  { value: "grandma", label: "Grand Mother 👵" },
+  { value: "children", label: "Child 👨‍👩‍👧" },
+  { value: "grandchildren", label: "Grand Child 👶" },
   { value: "wife", label: "Wife 👰" },
 ] as const;
 
