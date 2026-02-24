@@ -93,7 +93,7 @@ const Chat = () => {
             </div>
           </div>
 
-          <ScrollArea className="flex-1">
+          <ScrollArea className="flex-1 overflow-hidden">
             {showNewChat && (
               <NewChatPanel
                 onStartChat={handleStartDirectChat}
