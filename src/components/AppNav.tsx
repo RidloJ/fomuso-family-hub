@@ -50,7 +50,7 @@ const AppNav = () => {
   return (
     <>
       {/* Desktop top nav */}
-      <nav className="flex items-center justify-between px-4 sm:px-6 py-4 max-w-6xl mx-auto border-b-2 border-border">
+      <nav className="flex items-center justify-between px-4 sm:px-6 py-3 max-w-6xl mx-auto border-b-2 border-border">
         <div className="flex items-center gap-4 sm:gap-6">
           <Link to="/dashboard" className="flex items-center gap-2">
             <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity }}>
@@ -74,7 +74,7 @@ const AppNav = () => {
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3 ml-4">
           <Link
             to="/settings"
             className={`rounded-full ring-2 transition-all ${isSettingsActive ? "ring-primary" : "ring-transparent hover:ring-border"}`}
@@ -99,7 +99,7 @@ const AppNav = () => {
               <Link
                 key={item.to}
                 to={item.to}
-                className={`flex flex-col items-center gap-0.5 py-2 px-3 rounded-xl transition-colors ${
+                className={`flex flex-col items-center gap-0.5 py-2 px-1.5 rounded-xl transition-colors ${
                   isActive
                     ? "text-primary"
                     : "text-muted-foreground"
