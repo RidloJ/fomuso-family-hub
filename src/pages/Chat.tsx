@@ -331,6 +331,21 @@ const MessagePanel = ({
         <Button variant="ghost" size="sm" className="md:hidden rounded-full" onClick={onBack}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
+        {(() => {
+          const otherMember = thread.type === "direct"
+            ? thread.members?.find((m) => m.member_id !== currentUserId)
+            : null;
+          const avatarUrl = otherMember?.avatar_url;
+          const initials = thread.type === "group"
+            ? "👨‍👩‍👧‍👦"
+            : (otherMember?.full_name || "?").split(" ").map((n) => n[0]).join("").toUpperCase();
+          return (
+            <Avatar className="h-9 w-9 flex-shrink-0">
+              <AvatarImage src={avatarUrl || ""} alt={thread.title || "Chat"} />
+              <AvatarFallback className="text-xs font-display">{initials}</AvatarFallback>
+            </Avatar>
+          );
+        })()}
         <div className="flex-1">
           <p className="font-display font-semibold text-sm">
             {thread.type === "group" ? "👨‍👩‍👧‍👦 " : ""}{thread.title || "Chat"}
