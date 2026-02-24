@@ -4,10 +4,11 @@ import { Camera, CalendarDays, Megaphone, PiggyBank, ArrowRight, Cake, DollarSig
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import AppNav from "@/components/AppNav";
+import PullToRefresh from "@/components/PullToRefresh";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useNjangiPeriod } from "@/hooks/useNjangi";
@@ -52,13 +53,20 @@ const sections = [
 const Dashboard = () => {
   const { user, loading } = useAuth();
 
+  const queryClient = useQueryClient();
+
   if (loading || !user) return null;
 
   const name = user.user_metadata?.full_name || "Family Member";
 
+  const handleRefresh = async () => {
+    await queryClient.invalidateQueries();
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <AppNav />
+      <PullToRefresh onRefresh={handleRefresh}>
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12 pb-24 md:pb-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -118,6 +126,7 @@ const Dashboard = () => {
         <NjangiWidget user={user} />
         <BirthdaysThisMonth user={user} />
       </main>
+      </PullToRefresh>
     </div>
   );
 };

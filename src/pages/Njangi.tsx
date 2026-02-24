@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { DollarSign, CheckCircle, AlertTriangle, Clock, Plus, FileText, Download, Pencil, Trash2 } from "lucide-react";
@@ -12,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import PullToRefresh from "@/components/PullToRefresh";
 import { useAuth } from "@/hooks/useAuth";
 import AppNav from "@/components/AppNav";
 import { useNjangiMembers, useNjangiPeriod, useNjangiPayments, useRecordPayment, useAllNjangiPeriods, useUpdatePayment, useDeletePayment } from "@/hooks/useNjangi";
@@ -35,6 +37,10 @@ const Njangi = () => {
   const recordPayment = useRecordPayment();
   const updatePayment = useUpdatePayment();
   const deletePayment = useDeletePayment();
+  const queryClient = useQueryClient();
+  const handleRefresh = useCallback(async () => {
+    await queryClient.invalidateQueries();
+  }, [queryClient]);
 
   if (loading || !user) return null;
 
@@ -71,6 +77,7 @@ const Njangi = () => {
   return (
     <div className="min-h-screen bg-background">
       <AppNav />
+      <PullToRefresh onRefresh={handleRefresh}>
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-24 md:pb-10">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
@@ -290,6 +297,7 @@ const Njangi = () => {
           </Card>
         </motion.div>
       </main>
+      </PullToRefresh>
     </div>
   );
 };
