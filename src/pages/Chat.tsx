@@ -588,6 +588,7 @@ const MessagePanel = ({
             placeholder={pendingFile ? "Add a caption..." : "Type a message..."}
             className="rounded-full flex-1"
             disabled={sending}
+            autoFocus
           />
           <Button
             onClick={handleSend}
