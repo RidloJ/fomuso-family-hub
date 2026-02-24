@@ -677,11 +677,8 @@ const NewChatPanel = ({
   return (
     <div className="border-b-2 border-primary/20 bg-primary/5">
       <div className="p-3 space-y-2">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
           <p className="font-display font-semibold text-sm flex-shrink-0">✨ New Chat</p>
-          <Button variant="destructive" size="sm" onClick={onClose} className="rounded-full h-7 w-7 p-0 flex-shrink-0">
-            <X className="h-3.5 w-3.5" />
-          </Button>
         </div>
         <Input
           placeholder="Search family members..."
