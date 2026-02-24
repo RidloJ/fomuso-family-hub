@@ -84,12 +84,12 @@ const Chat = () => {
                 <div className="flex items-center justify-between">
                   <h2 className="font-display text-lg font-bold">💬 Chats</h2>
                   <Button
-                    variant={showNewChat ? "default" : "ghost"}
+                    variant="ghost"
                     size="sm"
                     className="rounded-full"
-                    onClick={() => setShowNewChat(!showNewChat)}
+                    onClick={() => setShowNewChat(true)}
                   >
-                    {showNewChat ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                    <Plus className="h-4 w-4" />
                   </Button>
                 </div>
                 <div className="relative">
@@ -98,7 +98,7 @@ const Chat = () => {
                 </div>
               </div>
               <ScrollArea className="flex-1 overflow-hidden">
-                {showNewChat && <NewChatPanel onStartChat={handleStartDirectChat} onClose={() => setShowNewChat(false)} currentUserId={user?.id || ""} />}
+                
                 {threadsLoading ? (
                   <div className="p-4 text-center text-muted-foreground font-display text-sm">Loading chats...</div>
                 ) : filteredThreads.length === 0 ? (
@@ -124,12 +124,12 @@ const Chat = () => {
                 <div className="flex items-center justify-between">
                   <h2 className="font-display text-lg font-bold">💬 Chats</h2>
                   <Button
-                    variant={showNewChat ? "default" : "ghost"}
+                    variant="ghost"
                     size="sm"
                     className="rounded-full"
-                    onClick={() => setShowNewChat(!showNewChat)}
+                    onClick={() => setShowNewChat(true)}
                   >
-                    {showNewChat ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                    <Plus className="h-4 w-4" />
                   </Button>
                 </div>
                 <div className="relative">
@@ -138,7 +138,7 @@ const Chat = () => {
                 </div>
               </div>
               <ScrollArea className="flex-1 overflow-hidden">
-                {showNewChat && <NewChatPanel onStartChat={handleStartDirectChat} onClose={() => setShowNewChat(false)} currentUserId={user?.id || ""} />}
+                
                 {threadsLoading ? (
                   <div className="p-4 text-center text-muted-foreground font-display text-sm">Loading chats...</div>
                 ) : filteredThreads.length === 0 ? (
@@ -167,6 +167,16 @@ const Chat = () => {
             </div>
           </ResizablePanel>
         </ResizablePanelGroup>
+      )}
+      {showNewChat && (
+        <NewChatPanel
+          onStartChat={(userId) => {
+            setShowNewChat(false);
+            handleStartDirectChat(userId);
+          }}
+          onClose={() => setShowNewChat(false)}
+          currentUserId={user?.id || ""}
+        />
       )}
     </div>
   );
@@ -675,51 +685,66 @@ const NewChatPanel = ({
     });
 
   return (
-    <div className="border-b-2 border-primary/20 bg-primary/5">
-      <div className="p-3 space-y-2">
-        <div className="flex items-center gap-2">
-          <p className="font-display font-semibold text-sm flex-shrink-0">✨ New Chat</p>
-        </div>
-        <Input
-          placeholder="Search family members..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="rounded-full h-8 text-sm"
-        />
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 40 }}
+      className="fixed inset-0 z-50 bg-background flex flex-col"
+    >
+      <div className="flex items-center gap-3 p-4 border-b border-border">
+        <Button variant="ghost" size="sm" className="rounded-full" onClick={onClose}>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <h2 className="font-display text-lg font-bold">New Chat</h2>
       </div>
-      {filtered.map((p) => {
-        const initials = p.full_name.split(" ").map((n: string) => n[0]).join("").toUpperCase();
-        const isOnline = onlineUserIds.includes(p.user_id);
-        return (
-          <button
-            key={p.user_id}
-            onClick={() => onStartChat(p.user_id)}
-            className="w-full flex items-center gap-3 p-3 hover:bg-primary/10 transition-colors"
-          >
-            <div className="relative">
-              <Avatar className="h-9 w-9">
-                <AvatarImage src={p.avatar_url || ""} />
-                <AvatarFallback className="text-xs font-display">{initials}</AvatarFallback>
-              </Avatar>
-              <span
-                className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-background ${
-                  isOnline ? "bg-warm-green" : "bg-muted-foreground/40"
-                }`}
-              />
-            </div>
-            <div className="flex flex-col items-start">
-              <span className="font-display text-sm">{p.full_name}</span>
-              <span className="text-[10px] text-muted-foreground">
-                {isOnline ? "🟢 Online" : "Offline"}
-              </span>
-            </div>
-          </button>
-        );
-      })}
-      {filtered.length === 0 && (
-        <p className="p-4 text-center text-muted-foreground text-sm font-display">No family members found</p>
-      )}
-    </div>
+      <div className="p-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search family members..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9 rounded-full"
+            autoFocus
+          />
+        </div>
+      </div>
+      <ScrollArea className="flex-1">
+        {filtered.length === 0 ? (
+          <p className="p-8 text-center text-muted-foreground text-sm font-display">No family members found</p>
+        ) : (
+          filtered.map((p) => {
+            const initials = p.full_name.split(" ").map((n: string) => n[0]).join("").toUpperCase();
+            const isOnline = onlineUserIds.includes(p.user_id);
+            return (
+              <button
+                key={p.user_id}
+                onClick={() => onStartChat(p.user_id)}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors"
+              >
+                <div className="relative">
+                  <Avatar className="h-11 w-11">
+                    <AvatarImage src={p.avatar_url || ""} />
+                    <AvatarFallback className="text-xs font-display">{initials}</AvatarFallback>
+                  </Avatar>
+                  <span
+                    className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-background ${
+                      isOnline ? "bg-warm-green" : "bg-muted-foreground/40"
+                    }`}
+                  />
+                </div>
+                <div className="flex flex-col items-start">
+                  <span className="font-display text-sm font-medium">{p.full_name}</span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {isOnline ? "🟢 Online" : "Offline"}
+                  </span>
+                </div>
+              </button>
+            );
+          })
+        )}
+      </ScrollArea>
+    </motion.div>
   );
 };
 
