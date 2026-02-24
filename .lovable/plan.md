@@ -1,72 +1,42 @@
 
 
-# 🏠 Family Hub — Your Private Family Website
+# Deploy to GitHub Pages
 
 ## Overview
-A warm, cozy family website where members can share moments, stay organized, and track family projects together. Features a welcoming public landing page with all content secured behind login.
+Set up the project for GitHub Pages hosting with automated deployment via GitHub Actions.
+
+## Steps
+
+### 1. Connect to GitHub
+- Go to **Settings** (gear icon) in the Lovable editor, then **GitHub**, and click **Connect project**
+- Authorize the Lovable GitHub App and create a repository
+
+### 2. Configure Vite for GitHub Pages
+- Update `vite.config.ts` to set `base` dynamically based on an environment variable or the GitHub Pages path (e.g., `/<repo-name>/`)
+- This ensures all assets load from the correct path when hosted under a subpath
+
+### 3. Create GitHub Actions Workflow
+- Add `.github/workflows/deploy.yml` that:
+  - Triggers on pushes to `main`
+  - Installs dependencies with `npm ci`
+  - Builds the project with `npm run build`
+  - Deploys the `dist/` folder to the `gh-pages` branch using `peaceiris/actions-gh-pages`
+
+### 4. SPA Routing Fix
+- Add a `public/404.html` file that redirects all routes back to `index.html` using a small JavaScript redirect script
+- This is the standard workaround for client-side routing on GitHub Pages, which doesn't support server-side rewrites
+
+### 5. Enable GitHub Pages
+- After the first deployment, go to your GitHub repository **Settings > Pages** and set the source to the `gh-pages` branch
 
 ---
 
-## 🎨 Design & Feel
-- **Warm & cozy** aesthetic with soft earth tones, rounded corners, and friendly typography
-- Family-oriented color palette (warm beiges, soft greens, gentle oranges)
-- Mobile-friendly design so members can post from their phones
+## Technical Details
 
----
+**Files to create/modify:**
+- `vite.config.ts` -- add `base` config for the repo subpath
+- `.github/workflows/deploy.yml` -- GitHub Actions CI/CD workflow
+- `public/404.html` -- SPA routing redirect for GitHub Pages
 
-## 📄 Pages & Features
-
-### 1. Public Landing Page
-- Beautiful hero section with family name/motto
-- Brief "About Our Family" section
-- Login / Sign Up buttons (no content visible without logging in)
-
-### 2. Authentication
-- Email-based signup and login
-- Admin-managed member approval (a family admin approves new signups)
-- User profiles with name, photo, and role (e.g., parent, child, grandparent)
-
-### 3. 📸 Family Gallery (Photos & Videos)
-- Members can upload photos and videos with captions
-- Organized by albums or events (e.g., "Christmas 2025", "Baby Milestones")
-- Visible to all logged-in family members
-- Like and comment on posts
-
-### 4. 📢 Updates & Announcements Feed
-- A news feed where members can post family updates
-- Pin important announcements to the top
-- Support for text posts with optional photos
-
-### 5. 📅 Meetings & Events
-- Upcoming meeting reminders with date, time, and description
-- Calendar view of family events
-- RSVP functionality so members can confirm attendance
-
-### 6. 💰 Contributions & Projects Tracker
-- **Family Projects** — create projects with a name, description, and funding target
-- **Contribution Tracking** — record who contributed what amount toward each project
-- **Progress Bars** — visual progress toward each project's goal
-- **Statistics Dashboard** — charts showing total contributions, top contributors, and project completion rates
-
-### 7. 👤 Member Directory
-- List of all family members with their profiles
-- See each member's posts and contributions
-
----
-
-## 🔧 Backend (Supabase / Lovable Cloud)
-- **Database** for members, posts, events, projects, and contributions
-- **Authentication** for secure login
-- **File Storage** for photo and video uploads
-- **Row-Level Security** so only authenticated family members can access content
-- **Admin role** for managing members and content
-
----
-
-## 🚀 Implementation Order
-1. **Foundation** — Landing page, authentication, and member profiles
-2. **Gallery** — Photo/video uploads and album organization
-3. **Updates Feed** — Post and view family announcements
-4. **Events** — Meeting reminders and calendar
-5. **Contributions** — Projects, tracking, and statistics dashboard
+**Important consideration:** The backend (Lovable Cloud) URLs are absolute, so database and auth features will continue to work regardless of where the frontend is hosted. The `.env` variables will need to be set as GitHub Actions secrets or hardcoded in the build step.
 
