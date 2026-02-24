@@ -11,12 +11,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { ArrowLeft, Send, MessageCircle, Search, Plus, MoreVertical, Pencil, Trash2, X, Check } from "lucide-react";
 import { format, isToday, isYesterday } from "date-fns";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Chat = () => {
+  const isMobile = useIsMobile();
   const { user, loading } = useAuth();
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
   const [showMobileMessages, setShowMobileMessages] = useState(false);
@@ -67,78 +70,98 @@ const Chat = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <AppNav />
-      <div className="flex-1 max-w-6xl mx-auto w-full flex overflow-hidden" style={{ height: "calc(100vh - 73px)" }}>
-        {/* Thread list sidebar */}
-        <div className={`w-full md:w-80 md:min-w-[320px] md:max-w-[320px] border-r border-border flex flex-col bg-card overflow-hidden ${showMobileMessages ? "hidden md:flex" : "flex"}`}>
-          <div className="p-4 border-b border-border space-y-3">
-            <div className="flex items-center justify-between">
-              <h2 className="font-display text-lg font-bold">💬 Chats</h2>
-              <Button
-                variant={showNewChat ? "default" : "ghost"}
-                size="sm"
-                className="rounded-full"
-                onClick={() => setShowNewChat(!showNewChat)}
-              >
-                {showNewChat ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-              </Button>
-            </div>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search chats..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 rounded-full"
-              />
-            </div>
-          </div>
-
-          <ScrollArea className="flex-1 overflow-hidden">
-            {showNewChat && (
-              <NewChatPanel
-                onStartChat={handleStartDirectChat}
-                onClose={() => setShowNewChat(false)}
-                currentUserId={user?.id || ""}
-              />
-            )}
-            {threadsLoading ? (
-              <div className="p-4 text-center text-muted-foreground font-display text-sm">Loading chats...</div>
-            ) : filteredThreads.length === 0 ? (
-              <div className="p-4 text-center text-muted-foreground font-display text-sm">No chats yet</div>
-            ) : (
-              filteredThreads.map((thread) => (
-                <ThreadItem
-                  key={thread.id}
-                  thread={thread}
-                  isActive={selectedThreadId === thread.id}
-                  onClick={() => handleSelectThread(thread.id)}
-                  currentUserId={user?.id || ""}
-                  onlineUserIds={onlineUsers.map((u) => u.user_id)}
-                />
-              ))
-            )}
-          </ScrollArea>
-        </div>
-
-        {/* Message panel */}
-        <div className={`flex-1 flex flex-col bg-muted/30 ${!showMobileMessages ? "hidden md:flex" : "flex"}`}>
-          {selectedThread ? (
-            <MessagePanel
-              thread={selectedThread}
-              onBack={handleBack}
-              currentUserId={user?.id || ""}
-              onlineUserIds={onlineUsers.map((u) => u.user_id)}
-            />
-          ) : (
-            <div className="flex-1 flex items-center justify-center bg-muted/20">
-              <div className="text-center">
-                <MessageCircle className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
-                <p className="font-display text-lg text-muted-foreground">Select a chat to start messaging</p>
+      {isMobile ? (
+        <div className="flex-1 flex overflow-hidden" style={{ height: "calc(100vh - 73px)" }}>
+          {!showMobileMessages ? (
+            <div className="w-full flex flex-col bg-card overflow-hidden">
+              <div className="p-4 border-b border-border space-y-3">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-display text-lg font-bold">💬 Chats</h2>
+                  <Button
+                    variant={showNewChat ? "default" : "ghost"}
+                    size="sm"
+                    className="rounded-full"
+                    onClick={() => setShowNewChat(!showNewChat)}
+                  >
+                    {showNewChat ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                  </Button>
+                </div>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input placeholder="Search chats..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9 rounded-full" />
+                </div>
               </div>
+              <ScrollArea className="flex-1 overflow-hidden">
+                {showNewChat && <NewChatPanel onStartChat={handleStartDirectChat} onClose={() => setShowNewChat(false)} currentUserId={user?.id || ""} />}
+                {threadsLoading ? (
+                  <div className="p-4 text-center text-muted-foreground font-display text-sm">Loading chats...</div>
+                ) : filteredThreads.length === 0 ? (
+                  <div className="p-4 text-center text-muted-foreground font-display text-sm">No chats yet</div>
+                ) : (
+                  filteredThreads.map((thread) => (
+                    <ThreadItem key={thread.id} thread={thread} isActive={selectedThreadId === thread.id} onClick={() => handleSelectThread(thread.id)} currentUserId={user?.id || ""} onlineUserIds={onlineUsers.map((u) => u.user_id)} />
+                  ))
+                )}
+              </ScrollArea>
+            </div>
+          ) : (
+            <div className="w-full flex flex-col bg-muted/30">
+              {selectedThread && <MessagePanel thread={selectedThread} onBack={handleBack} currentUserId={user?.id || ""} onlineUserIds={onlineUsers.map((u) => u.user_id)} />}
             </div>
           )}
         </div>
-      </div>
+      ) : (
+        <ResizablePanelGroup direction="horizontal" className="flex-1 max-w-6xl mx-auto w-full" style={{ height: "calc(100vh - 73px)" }}>
+          <ResizablePanel defaultSize={30} minSize={20} maxSize={50}>
+            <div className="h-full flex flex-col bg-card overflow-hidden border-r border-border">
+              <div className="p-4 border-b border-border space-y-3">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-display text-lg font-bold">💬 Chats</h2>
+                  <Button
+                    variant={showNewChat ? "default" : "ghost"}
+                    size="sm"
+                    className="rounded-full"
+                    onClick={() => setShowNewChat(!showNewChat)}
+                  >
+                    {showNewChat ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                  </Button>
+                </div>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input placeholder="Search chats..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9 rounded-full" />
+                </div>
+              </div>
+              <ScrollArea className="flex-1 overflow-hidden">
+                {showNewChat && <NewChatPanel onStartChat={handleStartDirectChat} onClose={() => setShowNewChat(false)} currentUserId={user?.id || ""} />}
+                {threadsLoading ? (
+                  <div className="p-4 text-center text-muted-foreground font-display text-sm">Loading chats...</div>
+                ) : filteredThreads.length === 0 ? (
+                  <div className="p-4 text-center text-muted-foreground font-display text-sm">No chats yet</div>
+                ) : (
+                  filteredThreads.map((thread) => (
+                    <ThreadItem key={thread.id} thread={thread} isActive={selectedThreadId === thread.id} onClick={() => handleSelectThread(thread.id)} currentUserId={user?.id || ""} onlineUserIds={onlineUsers.map((u) => u.user_id)} />
+                  ))
+                )}
+              </ScrollArea>
+            </div>
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel defaultSize={70}>
+            <div className="h-full flex flex-col bg-muted/30">
+              {selectedThread ? (
+                <MessagePanel thread={selectedThread} onBack={handleBack} currentUserId={user?.id || ""} onlineUserIds={onlineUsers.map((u) => u.user_id)} />
+              ) : (
+                <div className="flex-1 flex items-center justify-center bg-muted/20">
+                  <div className="text-center">
+                    <MessageCircle className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
+                    <p className="font-display text-lg text-muted-foreground">Select a chat to start messaging</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      )}
     </div>
   );
 };
