@@ -2,17 +2,18 @@ import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import AppNav from "@/components/AppNav";
-import { useThreads, useMessages, useSendMessage, useEnsureGroupChat, useCreateDirectChat, ChatThread } from "@/hooks/useChat";
+import { useThreads, useMessages, useSendMessage, useEnsureGroupChat, useCreateDirectChat, ChatThread, ChatMessage } from "@/hooks/useChat";
 import { usePresence } from "@/hooks/usePresence";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, Send, MessageCircle, Users, Search, Plus } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ArrowLeft, Send, MessageCircle, Search, Plus, MoreVertical, Pencil, Trash2, X, Check } from "lucide-react";
 import { format, isToday, isYesterday } from "date-fns";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 
 const Chat = () => {
@@ -27,11 +28,8 @@ const Chat = () => {
 
   const { data: threads = [], isLoading: threadsLoading } = useThreads();
 
-  // Ensure family group chat exists on mount
   useEffect(() => {
-    if (user) {
-      ensureGroupChat();
-    }
+    if (user) ensureGroupChat();
   }, [user, ensureGroupChat]);
 
   const handleSelectThread = (threadId: string) => {
@@ -48,7 +46,7 @@ const Chat = () => {
         setShowMobileMessages(true);
         setShowNewChat(false);
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to start chat");
     }
   };
@@ -70,18 +68,18 @@ const Chat = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <AppNav />
       <div className="flex-1 max-w-6xl mx-auto w-full flex overflow-hidden" style={{ height: "calc(100vh - 73px)" }}>
-        {/* Thread list - hidden on mobile when viewing messages */}
-        <div className={`w-full md:w-80 md:min-w-[320px] border-r border-border flex flex-col ${showMobileMessages ? "hidden md:flex" : "flex"}`}>
+        {/* Thread list sidebar */}
+        <div className={`w-full md:w-80 md:min-w-[320px] border-r border-border flex flex-col bg-card ${showMobileMessages ? "hidden md:flex" : "flex"}`}>
           <div className="p-4 border-b border-border space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="font-display text-lg font-bold">💬 Chats</h2>
               <Button
-                variant="ghost"
+                variant={showNewChat ? "default" : "ghost"}
                 size="sm"
                 className="rounded-full"
                 onClick={() => setShowNewChat(!showNewChat)}
               >
-                <Plus className="h-4 w-4" />
+                {showNewChat ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
               </Button>
             </div>
             <div className="relative">
@@ -123,7 +121,7 @@ const Chat = () => {
         </div>
 
         {/* Message panel */}
-        <div className={`flex-1 flex flex-col ${!showMobileMessages ? "hidden md:flex" : "flex"}`}>
+        <div className={`flex-1 flex flex-col bg-muted/30 ${!showMobileMessages ? "hidden md:flex" : "flex"}`}>
           {selectedThread ? (
             <MessagePanel
               thread={selectedThread}
@@ -132,7 +130,7 @@ const Chat = () => {
               onlineUserIds={onlineUsers.map((u) => u.user_id)}
             />
           ) : (
-            <div className="flex-1 flex items-center justify-center">
+            <div className="flex-1 flex items-center justify-center bg-muted/20">
               <div className="text-center">
                 <MessageCircle className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
                 <p className="font-display text-lg text-muted-foreground">Select a chat to start messaging</p>
@@ -177,7 +175,7 @@ const ThreadItem = ({
     <button
       onClick={onClick}
       className={`w-full flex items-center gap-3 p-3 text-left transition-colors hover:bg-muted/50 ${
-        isActive ? "bg-muted" : ""
+        isActive ? "bg-primary/10 border-l-2 border-l-primary" : ""
       }`}
     >
       <div className="relative">
@@ -224,11 +222,13 @@ const MessagePanel = ({
 }) => {
   const { data: messages = [], isLoading } = useMessages(thread.id);
   const sendMessage = useSendMessage();
+  const queryClient = useQueryClient();
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom on new messages
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -254,6 +254,46 @@ const MessagePanel = ({
     }
   };
 
+  const handleEditStart = (msg: ChatMessage) => {
+    setEditingId(msg.id);
+    setEditContent(msg.content);
+  };
+
+  const handleEditSave = async () => {
+    if (!editingId || !editContent.trim()) return;
+    const { error } = await supabase
+      .from("chat_messages")
+      .update({ content: editContent.trim(), edited_at: new Date().toISOString() })
+      .eq("id", editingId);
+    if (error) {
+      toast.error("Failed to edit message");
+    } else {
+      queryClient.invalidateQueries({ queryKey: ["chat-messages", thread.id] });
+      toast.success("Message edited ✏️");
+    }
+    setEditingId(null);
+    setEditContent("");
+  };
+
+  const handleEditCancel = () => {
+    setEditingId(null);
+    setEditContent("");
+  };
+
+  const handleDelete = async (msgId: string) => {
+    const { error } = await supabase
+      .from("chat_messages")
+      .update({ is_deleted: true, content: "" })
+      .eq("id", msgId);
+    if (error) {
+      toast.error("Failed to delete message");
+    } else {
+      queryClient.invalidateQueries({ queryKey: ["chat-messages", thread.id] });
+      queryClient.invalidateQueries({ queryKey: ["chat-threads"] });
+      toast.success("Message deleted 🗑️");
+    }
+  };
+
   const onlineMemberCount = thread.members?.filter(
     (m) => m.member_id === currentUserId || onlineUserIds.includes(m.member_id)
   ).length || 0;
@@ -261,7 +301,7 @@ const MessagePanel = ({
   return (
     <>
       {/* Header */}
-      <div className="flex items-center gap-3 p-4 border-b border-border">
+      <div className="flex items-center gap-3 p-4 border-b border-border bg-card">
         <Button variant="ghost" size="sm" className="md:hidden rounded-full" onClick={onBack}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
@@ -275,7 +315,7 @@ const MessagePanel = ({
               : onlineUserIds.includes(
                   thread.members?.find((m) => m.member_id !== currentUserId)?.member_id || ""
                 )
-              ? "Online"
+              ? "🟢 Online"
               : "Offline"}
           </p>
         </div>
@@ -295,13 +335,14 @@ const MessagePanel = ({
             const showAvatar =
               !isMine &&
               (i === 0 || messages[i - 1].sender_id !== msg.sender_id);
+            const isEditing = editingId === msg.id;
 
             return (
               <motion.div
                 key={msg.id}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`flex ${isMine ? "justify-end" : "justify-start"}`}
+                className={`flex ${isMine ? "justify-end" : "justify-start"} group`}
               >
                 <div className={`flex gap-2 max-w-[80%] ${isMine ? "flex-row-reverse" : ""}`}>
                   {!isMine && showAvatar ? (
@@ -314,25 +355,76 @@ const MessagePanel = ({
                   ) : !isMine ? (
                     <div className="w-7 flex-shrink-0" />
                   ) : null}
-                  <div>
+                  <div className="relative">
                     {!isMine && showAvatar && (
                       <p className="text-[10px] font-display font-semibold text-muted-foreground mb-0.5 ml-1">
                         {msg.sender?.full_name}
                       </p>
                     )}
-                    <div
-                      className={`px-3 py-2 rounded-2xl text-sm ${
-                        isMine
-                          ? "bg-primary text-primary-foreground rounded-br-sm"
-                          : "bg-muted rounded-bl-sm"
-                      }`}
-                    >
-                      {msg.is_deleted ? (
-                        <span className="italic text-muted-foreground text-xs">Message deleted</span>
-                      ) : (
-                        msg.content
-                      )}
-                    </div>
+
+                    {isEditing ? (
+                      <div className="flex items-center gap-1">
+                        <Input
+                          value={editContent}
+                          onChange={(e) => setEditContent(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleEditSave();
+                            if (e.key === "Escape") handleEditCancel();
+                          }}
+                          className="text-sm h-8 rounded-full"
+                          autoFocus
+                        />
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 rounded-full" onClick={handleEditSave}>
+                          <Check className="h-3.5 w-3.5 text-primary" />
+                        </Button>
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 rounded-full" onClick={handleEditCancel}>
+                          <X className="h-3.5 w-3.5 text-muted-foreground" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1">
+                        {isMine && (
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity order-first">
+                            {!msg.is_deleted && (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0 rounded-full">
+                                    <MoreVertical className="h-3.5 w-3.5 text-muted-foreground" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="min-w-[120px]">
+                                  <DropdownMenuItem onClick={() => handleEditStart(msg)} className="text-xs">
+                                    <Pencil className="h-3.5 w-3.5 mr-2" /> Edit
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleDelete(msg.id)} className="text-xs text-destructive">
+                                    <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            )}
+                          </div>
+                        )}
+                        <div
+                          className={`px-3 py-2 rounded-2xl text-sm ${
+                            isMine
+                              ? "bg-primary text-primary-foreground rounded-br-sm"
+                              : "bg-card border border-border rounded-bl-sm"
+                          }`}
+                        >
+                          {msg.is_deleted ? (
+                            <span className="italic text-muted-foreground text-xs">🚫 Message deleted</span>
+                          ) : (
+                            <>
+                              {msg.content}
+                              {msg.edited_at && (
+                                <span className="text-[9px] opacity-60 ml-1">(edited)</span>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     <p className={`text-[9px] text-muted-foreground mt-0.5 ${isMine ? "text-right mr-1" : "ml-1"}`}>
                       {format(new Date(msg.created_at), "h:mm a")}
                     </p>
@@ -345,7 +437,7 @@ const MessagePanel = ({
       </div>
 
       {/* Composer */}
-      <div className="p-3 border-t border-border">
+      <div className="p-3 border-t border-border bg-card">
         <div className="flex items-center gap-2">
           <Input
             value={input}
@@ -369,7 +461,7 @@ const MessagePanel = ({
   );
 };
 
-// New chat panel to start a direct chat
+// New chat panel
 const NewChatPanel = ({
   onStartChat,
   onClose,
@@ -393,11 +485,11 @@ const NewChatPanel = ({
   });
 
   return (
-    <div className="border-b border-border">
+    <div className="border-b-2 border-primary/20 bg-primary/5">
       <div className="p-3 flex items-center justify-between">
-        <p className="font-display font-semibold text-sm">New Chat</p>
-        <Button variant="ghost" size="sm" onClick={onClose} className="text-xs rounded-full">
-          Cancel
+        <p className="font-display font-semibold text-sm">✨ New Chat</p>
+        <Button variant="destructive" size="sm" onClick={onClose} className="text-xs rounded-full h-7 px-3">
+          <X className="h-3 w-3 mr-1" /> Cancel
         </Button>
       </div>
       {profiles.map((p) => {
@@ -406,7 +498,7 @@ const NewChatPanel = ({
           <button
             key={p.user_id}
             onClick={() => onStartChat(p.user_id)}
-            className="w-full flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors"
+            className="w-full flex items-center gap-3 p-3 hover:bg-primary/10 transition-colors"
           >
             <Avatar className="h-9 w-9">
               <AvatarImage src={p.avatar_url || ""} />
