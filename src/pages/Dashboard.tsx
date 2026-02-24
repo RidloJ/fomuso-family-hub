@@ -59,13 +59,13 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <AppNav />
-      <main className="max-w-5xl mx-auto px-6 py-12">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12 pb-24 md:pb-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-10"
         >
-          <h1 className="font-display text-4xl font-bold mb-2">
+          <h1 className="font-display text-2xl sm:text-4xl font-bold mb-2">
             Hey, {name}! 🌟
           </h1>
           <p className="text-lg text-muted-foreground font-display">
@@ -203,12 +203,12 @@ const NjangiWidget = ({ user }: { user: any }) => {
         </CardHeader>
         <CardContent>
           <Progress value={pct} className="h-2 mb-3" />
-          <div className="flex flex-wrap items-center gap-4 mb-3 text-sm font-display">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-x-4 gap-y-2 mb-3 text-sm font-display">
             <span>Expected: <strong>{expected.toLocaleString()} FCFA</strong></span>
             <span>Remitted: <strong className="text-primary">{remitted.toLocaleString()} FCFA</strong></span>
             <span>Left: <strong>{balance.toLocaleString()} FCFA</strong></span>
             <Badge className={`${sc.color} text-xs`}>{sc.emoji} {sc.label}</Badge>
-            <span className="text-muted-foreground text-xs">{daysLeft >= 0 ? `${daysLeft} days left` : "Past deadline"}</span>
+            <span className="text-muted-foreground text-xs col-span-2 sm:col-span-1">{daysLeft >= 0 ? `${daysLeft} days left` : "Past deadline"}</span>
           </div>
           <Button asChild size="sm" className="rounded-full font-display">
             <Link to="/njangi">Open Njangi →</Link>

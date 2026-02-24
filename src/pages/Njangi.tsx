@@ -71,10 +71,10 @@ const Njangi = () => {
   return (
     <div className="min-h-screen bg-background">
       <AppNav />
-      <main className="max-w-5xl mx-auto px-6 py-10">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-24 md:pb-10">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-          <h1 className="font-display text-3xl font-bold mb-1">💰 Njangi</h1>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold mb-1">💰 Njangi</h1>
           <p className="text-muted-foreground font-display text-sm">Monthly family contributions (deadline: last Sunday of each month)</p>
           <div className="flex flex-wrap items-center gap-3 mt-4">
             <Select value={`${selectedMonth}`} onValueChange={(v) => setSelectedMonth(Number(v))}>

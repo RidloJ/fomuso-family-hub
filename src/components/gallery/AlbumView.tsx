@@ -211,19 +211,19 @@ const AlbumView = ({ album, user, onBack }: Props) => {
   });
 
   return (
-    <main className="max-w-6xl mx-auto px-6 py-8">
-      <div className="flex items-center gap-4 mb-8">
-        <Button variant="ghost" size="sm" onClick={onBack} className="rounded-full font-display">
+    <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-24 md:pb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-8">
+        <Button variant="ghost" size="sm" onClick={onBack} className="rounded-full font-display self-start">
           <ArrowLeft className="h-4 w-4 mr-2" /> Back
         </Button>
-        <div className="flex-1">
-          <h1 className="font-display text-3xl font-bold">{album.title}</h1>
+        <div className="flex-1 min-w-0">
+          <h1 className="font-display text-2xl sm:text-3xl font-bold truncate">{album.title}</h1>
           {album.description && <p className="text-muted-foreground font-display mt-1">{album.description}</p>}
           <p className="text-xs text-muted-foreground font-display mt-1">
             Created {format(new Date(album.created_at), "MMM d, yyyy")}
           </p>
         </div>
-        <div>
+        <div className="self-start sm:self-auto">
           <input
             ref={fileInputRef}
             type="file"
