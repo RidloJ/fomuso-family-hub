@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import AppNav from "@/components/AppNav";
 import { useThreads, useMessages, useSendMessage, useEnsureGroupChat, useCreateDirectChat, ChatThread, ChatMessage } from "@/hooks/useChat";
 import { useMarkThreadRead } from "@/hooks/useUnreadCount";
+import { useMessageNotifications } from "@/hooks/useNotifications";
 import { usePresence } from "@/hooks/usePresence";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,7 +31,7 @@ const Chat = () => {
   const createDirectChat = useCreateDirectChat();
   const markThreadRead = useMarkThreadRead();
   const onlineUsers = usePresence();
-
+  const { setActiveThread } = useMessageNotifications();
   const { data: threads = [], isLoading: threadsLoading } = useThreads();
 
   useEffect(() => {
@@ -42,6 +43,7 @@ const Chat = () => {
     setShowMobileMessages(true);
     setShowNewChat(false);
     markThreadRead(threadId);
+    setActiveThread(threadId);
   };
 
   const handleStartDirectChat = async (otherUserId: string) => {
@@ -60,6 +62,7 @@ const Chat = () => {
   const handleBack = () => {
     setShowMobileMessages(false);
     setSelectedThreadId(null);
+    setActiveThread(null);
   };
 
   const filteredThreads = threads.filter((t) =>
