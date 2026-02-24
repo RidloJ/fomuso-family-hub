@@ -78,12 +78,13 @@ const Events = () => {
       const year = currentMonth.getFullYear();
       return (data || []).map((m: any) => {
         const [y, mo, d] = m.date_of_birth.split("-").map(Number);
-        const birthdayDate = new Date(year, mo - 1, d, 0, 0, 0);
+        const monthStr = String(mo).padStart(2, "0");
+        const dayStr = String(d).padStart(2, "0");
         return {
           id: `birthday-${m.id}-${year}`,
           title: `🎂 ${m.first_name} ${m.last_name}'s Birthday`,
           description: `Happy Birthday to ${m.first_name}! 🎈🎉`,
-          event_date: birthdayDate.toISOString(),
+          event_date: `${year}-${monthStr}-${dayStr}T00:00:00`,
           end_date: null,
           location: null,
           created_by: "system",
