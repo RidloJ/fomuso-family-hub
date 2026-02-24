@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
+export type ReadStatus = "sent" | "delivered" | "read";
+
 export interface ChatThread {
   id: string;
   type: "group" | "direct";
@@ -122,6 +124,41 @@ export const useThreads = () => {
   });
 };
 
+export const useReadReceipts = (threadId: string | null, currentUserId: string) => {
+  return useQuery({
+    queryKey: ["read-receipts", threadId],
+    queryFn: async () => {
+      if (!threadId) return [];
+      const { data, error } = await supabase
+        .from("chat_thread_members")
+        .select("member_id, last_read_at")
+        .eq("thread_id", threadId)
+        .neq("member_id", currentUserId);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!threadId,
+    refetchInterval: 10000,
+  });
+};
+
+export const getMessageReadStatus = (
+  messageCreatedAt: string,
+  otherMembers: { member_id: string; last_read_at: string | null }[]
+): ReadStatus => {
+  if (!otherMembers.length) return "sent";
+  const msgTime = new Date(messageCreatedAt).getTime();
+  const allRead = otherMembers.every(
+    (m) => m.last_read_at && new Date(m.last_read_at).getTime() >= msgTime
+  );
+  if (allRead) return "read";
+  const anyRead = otherMembers.some(
+    (m) => m.last_read_at && new Date(m.last_read_at).getTime() >= msgTime
+  );
+  if (anyRead) return "delivered";
+  return "sent";
+};
+
 export const useMessages = (threadId: string | null) => {
   const queryClient = useQueryClient();
 
@@ -222,11 +259,24 @@ export const useEnsureGroupChat = () => {
     // Check if a group chat already exists
     const { data: existingThreads } = await supabase
       .from("chat_threads")
-      .select("id")
+      .select("id, created_at")
       .eq("type", "group")
-      .eq("title", "Family Group Chat");
+      .eq("title", "Family Group Chat")
+      .order("created_at", { ascending: true });
 
-    if (existingThreads && existingThreads.length > 0) return existingThreads[0].id;
+    if (existingThreads && existingThreads.length > 0) {
+      // Clean up duplicates: keep only the oldest one
+      if (existingThreads.length > 1) {
+        const duplicateIds = existingThreads.slice(1).map((t) => t.id);
+        // Remove members and messages from duplicates, then delete threads
+        for (const dupId of duplicateIds) {
+          await supabase.from("chat_thread_members").delete().eq("thread_id", dupId);
+          await supabase.from("chat_messages").delete().eq("thread_id", dupId);
+          await supabase.from("chat_threads").delete().eq("id", dupId);
+        }
+      }
+      return existingThreads[0].id;
+    }
 
     // Create family group chat
     const { data: thread, error: tErr } = await supabase
