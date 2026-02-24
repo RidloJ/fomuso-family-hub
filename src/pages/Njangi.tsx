@@ -192,10 +192,9 @@ const Njangi = () => {
                         + Pay
                       </Button>
                     </div>
-                    <div className="grid grid-cols-3 gap-2 text-xs font-display mb-2">
+                    <div className="grid grid-cols-2 gap-2 text-xs font-display mb-2">
                       <div><p className="text-muted-foreground">Expected</p><p className="font-semibold">{expected.toLocaleString()} FCFA</p></div>
                       <div><p className="text-muted-foreground">Paid</p><p className="font-semibold text-primary">{paid.toLocaleString()} FCFA</p></div>
-                      <div><p className="text-muted-foreground">Left</p><p className="font-semibold">{memberBalance.toLocaleString()} FCFA</p></div>
                     </div>
                     {memberPayments.length > 0 && (
                       <div className="border-t pt-2 mt-1 space-y-1">
