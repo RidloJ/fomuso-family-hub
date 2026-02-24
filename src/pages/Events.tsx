@@ -55,7 +55,7 @@ const Events = () => {
   const [eventDate, setEventDate] = useState<Date | undefined>();
   const [eventTime, setEventTime] = useState("12:00");
 
-  const { data: events = [], isLoading } = useQuery({
+  const { data: dbEvents = [], isLoading } = useQuery({
     queryKey: ["events"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -67,6 +67,37 @@ const Events = () => {
     },
     enabled: !!user,
   });
+
+  const { data: birthdayEvents = [] } = useQuery({
+    queryKey: ["birthday-events", currentMonth.getFullYear()],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("family_members")
+        .select("id, first_name, last_name, date_of_birth");
+      if (error) throw error;
+      const year = currentMonth.getFullYear();
+      return (data || []).map((m: any) => {
+        const dob = new Date(m.date_of_birth);
+        const birthdayDate = new Date(year, dob.getMonth(), dob.getDate(), 0, 0, 0);
+        return {
+          id: `birthday-${m.id}-${year}`,
+          title: `🎂 ${m.first_name} ${m.last_name}'s Birthday`,
+          description: `Happy Birthday to ${m.first_name}! 🎈🎉`,
+          event_date: birthdayDate.toISOString(),
+          end_date: null,
+          location: null,
+          created_by: "system",
+          created_at: new Date().toISOString(),
+          _isBirthday: true,
+        } as Event & { _isBirthday?: boolean };
+      });
+    },
+    enabled: !!user,
+  });
+
+  const events = [...dbEvents, ...birthdayEvents].sort(
+    (a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime()
+  );
 
   const { data: rsvps = [] } = useQuery({
     queryKey: ["rsvps", selectedEvent?.id],
@@ -262,8 +293,8 @@ const Events = () => {
                       <span>{format(day, "d")}</span>
                       {dayEvents.length > 0 && (
                         <div className="flex gap-0.5 mt-1 flex-wrap justify-center">
-                          {dayEvents.slice(0, 3).map((_, i) => (
-                            <div key={i} className="w-1.5 h-1.5 rounded-full bg-primary" />
+                          {dayEvents.slice(0, 3).map((ev, i) => (
+                            <div key={i} className={cn("w-1.5 h-1.5 rounded-full", (ev as any)._isBirthday ? "bg-pink-500" : "bg-primary")} />
                           ))}
                         </div>
                       )}
@@ -339,46 +370,50 @@ const Events = () => {
                   <p className="text-sm text-muted-foreground mb-4">{selectedEvent.description}</p>
                 )}
 
-                {/* RSVP buttons */}
-                <div className="space-y-2 mb-4">
-                  <Label className="font-display text-sm">Your RSVP:</Label>
-                  <div className="flex gap-2 flex-wrap">
-                    {rsvpOptions.map((opt) => (
-                      <motion.div key={opt.status} whileTap={{ scale: 0.95 }}>
-                        <Button
-                          size="sm"
-                          variant={myRsvp?.status === opt.status ? "default" : "outline"}
-                          className="rounded-full font-display text-xs"
-                          onClick={() => handleRsvp.mutate(opt.status)}
-                        >
-                          {opt.label}
-                        </Button>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* RSVP list */}
-                <div>
-                  <Label className="font-display text-sm">Who's coming:</Label>
-                  {rsvps.length === 0 ? (
-                    <p className="text-xs text-muted-foreground mt-1">No RSVPs yet — be the first! 🙋</p>
-                  ) : (
-                    <div className="mt-2 space-y-1">
-                      {rsvps.map((r: Rsvp) => {
-                        const opt = rsvpOptions.find((o) => o.status === r.status);
-                        return (
-                          <div key={r.id} className="flex items-center gap-2 text-sm">
-                            <span className={cn("font-display font-semibold", opt?.color)}>
-                              {r.status === "going" ? "✅" : r.status === "maybe" ? "🤔" : "❌"}
-                            </span>
-                            <span className="font-display">{r.profile_name}</span>
-                          </div>
-                        );
-                      })}
+                {!(selectedEvent as any)._isBirthday && (
+                  <>
+                    {/* RSVP buttons */}
+                    <div className="space-y-2 mb-4">
+                      <Label className="font-display text-sm">Your RSVP:</Label>
+                      <div className="flex gap-2 flex-wrap">
+                        {rsvpOptions.map((opt) => (
+                          <motion.div key={opt.status} whileTap={{ scale: 0.95 }}>
+                            <Button
+                              size="sm"
+                              variant={myRsvp?.status === opt.status ? "default" : "outline"}
+                              className="rounded-full font-display text-xs"
+                              onClick={() => handleRsvp.mutate(opt.status)}
+                            >
+                              {opt.label}
+                            </Button>
+                          </motion.div>
+                        ))}
+                      </div>
                     </div>
-                  )}
-                </div>
+
+                    {/* RSVP list */}
+                    <div>
+                      <Label className="font-display text-sm">Who's coming:</Label>
+                      {rsvps.length === 0 ? (
+                        <p className="text-xs text-muted-foreground mt-1">No RSVPs yet — be the first! 🙋</p>
+                      ) : (
+                        <div className="mt-2 space-y-1">
+                          {rsvps.map((r: Rsvp) => {
+                            const opt = rsvpOptions.find((o) => o.status === r.status);
+                            return (
+                              <div key={r.id} className="flex items-center gap-2 text-sm">
+                                <span className={cn("font-display font-semibold", opt?.color)}>
+                                  {r.status === "going" ? "✅" : r.status === "maybe" ? "🤔" : "❌"}
+                                </span>
+                                <span className="font-display">{r.profile_name}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
               </motion.div>
             ) : null}
 
