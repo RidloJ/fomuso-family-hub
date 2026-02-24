@@ -129,6 +129,79 @@ export function useRecordPayment() {
   });
 }
 
+export function useUpdatePayment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: {
+      id: string;
+      period_id: string;
+      amount: number;
+      payment_date: string;
+      payment_method: string;
+      note?: string;
+    }) => {
+      const { id, period_id, ...rest } = payload;
+      const { error } = await supabase
+        .from("njangi_payments")
+        .update({ ...rest, payment_method: rest.payment_method as any })
+        .eq("id", id);
+      if (error) throw error;
+
+      await recalcPeriod(period_id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["njangi-period"] });
+      queryClient.invalidateQueries({ queryKey: ["njangi-payments"] });
+      queryClient.invalidateQueries({ queryKey: ["njangi-periods-year"] });
+    },
+  });
+}
+
+export function useDeletePayment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: { id: string; period_id: string }) => {
+      const { error } = await supabase
+        .from("njangi_payments")
+        .delete()
+        .eq("id", payload.id);
+      if (error) throw error;
+
+      await recalcPeriod(payload.period_id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["njangi-period"] });
+      queryClient.invalidateQueries({ queryKey: ["njangi-payments"] });
+      queryClient.invalidateQueries({ queryKey: ["njangi-periods-year"] });
+    },
+  });
+}
+
+async function recalcPeriod(periodId: string) {
+  const { data: payments } = await supabase
+    .from("njangi_payments")
+    .select("amount")
+    .eq("period_id", periodId);
+  const totalRemitted = (payments || []).reduce((s, p) => s + Number(p.amount), 0);
+
+  const { data: period } = await supabase
+    .from("njangi_periods")
+    .select("expected_total")
+    .eq("id", periodId)
+    .single();
+
+  const expectedTotal = Number(period?.expected_total || 0);
+  const balanceLeft = Math.max(0, expectedTotal - totalRemitted);
+  const status = computeStatus(totalRemitted, expectedTotal);
+
+  await supabase
+    .from("njangi_periods")
+    .update({ total_remitted: totalRemitted, balance_left: balanceLeft, status })
+    .eq("id", periodId);
+}
+
 export function useAllNjangiPeriods(year: number) {
   return useQuery({
     queryKey: ["njangi-periods-year", year],
