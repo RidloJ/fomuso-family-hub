@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Shield, Users, UserCheck, UserX, Crown } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Shield, Users, UserCheck, UserX, Crown, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 const Admin = () => {
@@ -91,6 +92,19 @@ const Admin = () => {
         queryClient.invalidateQueries({ queryKey: ["admin-roles"] });
         toast.success("Admin role granted 👑");
       }
+    }
+  };
+
+  const deleteUser = async (userId: string, fullName: string) => {
+    const { data, error } = await supabase.functions.invoke("delete-user", {
+      body: { user_id: userId },
+    });
+    if (error || data?.error) {
+      toast.error(data?.error || error?.message || "Failed to delete user");
+    } else {
+      queryClient.invalidateQueries({ queryKey: ["admin-profiles"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-roles"] });
+      toast.success(`${fullName || "User"} has been removed 🗑️`);
     }
   };
 
@@ -227,6 +241,32 @@ const Admin = () => {
                           />
                           <span className="text-[9px] text-muted-foreground font-display">Admin</span>
                         </div>
+                      )}
+                      {!isSelf && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="rounded-2xl">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="font-display">Delete {profile.full_name || "this user"}? 🗑️</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently remove this user and all their data. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel className="rounded-full">Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                className="rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                onClick={() => deleteUser(profile.user_id, profile.full_name)}
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       )}
                     </div>
                   </div>
