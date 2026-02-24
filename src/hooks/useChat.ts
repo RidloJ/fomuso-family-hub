@@ -226,11 +226,18 @@ export const useEnsureGroupChat = () => {
       .single();
     if (tErr) throw tErr;
 
-    // Add all approved family profiles as members
+    // Always add creator first
+    await supabase.from("chat_thread_members").insert({
+      thread_id: thread.id,
+      member_id: user.id,
+    });
+
+    // Add all other approved family profiles as members
     const { data: profiles } = await supabase
       .from("profiles")
       .select("user_id")
-      .eq("is_approved", true);
+      .eq("is_approved", true)
+      .neq("user_id", user.id);
 
     if (profiles && profiles.length > 0) {
       const members = profiles.map((p) => ({
