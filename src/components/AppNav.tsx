@@ -73,7 +73,7 @@ const AppNav = () => {
             </motion.div>
             <span className="font-display text-lg sm:text-xl font-bold">Fomuso Family 🏠</span>
           </Link>
-          <div className="hidden md:flex items-center gap-1">
+        <div className="hidden md:flex items-center gap-1">
             {navItems.map((item) => (
               <Button
                 key={item.to}
@@ -89,7 +89,7 @@ const AppNav = () => {
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-3 ml-4">
+        <div className="flex items-center gap-3 ml-auto">
           {isAdmin && (
             <Button
               variant={location.pathname === "/admin" ? "default" : "ghost"}
