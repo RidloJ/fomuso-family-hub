@@ -15,6 +15,7 @@ import FamilyMembers from "./pages/FamilyMembers";
 import Njangi from "./pages/Njangi";
 import Settings from "./pages/Settings";
 import Chat from "./pages/Chat";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import InstallPrompt from "./components/InstallPrompt";
 
@@ -40,6 +41,7 @@ const App = () => (
           <Route path="/njangi" element={<Njangi />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/chat" element={<Chat />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

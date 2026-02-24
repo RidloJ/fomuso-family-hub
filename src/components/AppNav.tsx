@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Heart, LogOut, Camera, Home, Calendar, Users, PiggyBank, MessageCircle } from "lucide-react";
+import { Heart, LogOut, Camera, Home, Calendar, Users, PiggyBank, MessageCircle, Shield } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -32,6 +32,21 @@ const AppNav = () => {
         .eq("user_id", user.id)
         .single();
       return data;
+    },
+    enabled: !!user,
+  });
+
+  const { data: isAdmin } = useQuery({
+    queryKey: ["is-admin-nav", user?.id],
+    queryFn: async () => {
+      if (!user) return false;
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .single();
+      return !!data;
     },
     enabled: !!user,
   });
@@ -75,6 +90,16 @@ const AppNav = () => {
           </div>
         </div>
         <div className="flex items-center gap-3 ml-4">
+          {isAdmin && (
+            <Button
+              variant={location.pathname === "/admin" ? "default" : "ghost"}
+              size="sm"
+              asChild
+              className="rounded-full font-display hidden md:flex"
+            >
+              <Link to="/admin">👑 Admin</Link>
+            </Button>
+          )}
           <Link
             to="/settings"
             className={`rounded-full ring-2 transition-all ${isSettingsActive ? "ring-primary" : "ring-transparent hover:ring-border"}`}
