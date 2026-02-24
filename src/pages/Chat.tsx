@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import AppNav from "@/components/AppNav";
-import { useThreads, useMessages, useSendMessage, useEnsureGroupChat, useCreateDirectChat, ChatThread, ChatMessage } from "@/hooks/useChat";
+import { useThreads, useMessages, useSendMessage, useEnsureGroupChat, useCreateDirectChat, useReadReceipts, getMessageReadStatus, ChatThread, ChatMessage, ReadStatus } from "@/hooks/useChat";
 import { useMarkThreadRead } from "@/hooks/useUnreadCount";
 import { useMessageNotifications } from "@/hooks/useNotifications";
 import { usePresence } from "@/hooks/usePresence";
@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
-import { ArrowLeft, Send, MessageCircle, Search, Plus, MoreVertical, Pencil, Trash2, X, Check, Paperclip, Image, FileText, Download } from "lucide-react";
+import { ArrowLeft, Send, MessageCircle, Search, Plus, MoreVertical, Pencil, Trash2, X, Check, CheckCheck, Paperclip, Image, FileText, Download } from "lucide-react";
 import { format, isToday, isYesterday } from "date-fns";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -260,6 +260,7 @@ const MessagePanel = ({
   onlineUserIds: string[];
 }) => {
   const { data: messages = [], isLoading } = useMessages(thread.id);
+  const { data: readReceipts = [] } = useReadReceipts(thread.id, currentUserId);
   const sendMessage = useSendMessage();
   const queryClient = useQueryClient();
   const [input, setInput] = useState("");
@@ -577,8 +578,14 @@ const MessagePanel = ({
                       </div>
                     )}
 
-                    <p className={`text-[9px] text-muted-foreground mt-0.5 ${isMine ? "text-right mr-1" : "ml-1"}`}>
+                    <p className={`text-[9px] text-muted-foreground mt-0.5 flex items-center gap-0.5 ${isMine ? "justify-end mr-1" : "ml-1"}`}>
                       {format(new Date(msg.created_at), "h:mm a")}
+                      {isMine && !msg.is_deleted && (() => {
+                        const status = getMessageReadStatus(msg.created_at, readReceipts);
+                        if (status === "read") return <CheckCheck className="h-3 w-3 text-blue-400 ml-0.5" />;
+                        if (status === "delivered") return <CheckCheck className="h-3 w-3 text-muted-foreground ml-0.5" />;
+                        return <Check className="h-3 w-3 text-muted-foreground ml-0.5" />;
+                      })()}
                     </p>
                   </div>
                 </div>
