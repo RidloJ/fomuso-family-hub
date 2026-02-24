@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Heart, LogOut, Camera, Home, Calendar, Users, PiggyBank } from "lucide-react";
+import { Heart, LogOut, Camera, Home, Calendar, Users, PiggyBank, MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -14,6 +14,7 @@ const navItems = [
   { to: "/events", label: "Events", icon: Calendar, emoji: "🎉" },
   { to: "/family", label: "Family", icon: Users, emoji: "👨‍👩‍👧‍👦" },
   { to: "/njangi", label: "Njangi", icon: PiggyBank, emoji: "💰" },
+  { to: "/chat", label: "Chat", icon: MessageCircle, emoji: "💬" },
 ];
 
 const AppNav = () => {

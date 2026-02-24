@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Camera, CalendarDays, Megaphone, PiggyBank, ArrowRight, Cake, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,8 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useNjangiPeriod } from "@/hooks/useNjangi";
 import { getDaysToDeadline, getDeadlineLabel, statusConfig } from "@/lib/njangi-utils";
+import OnlineFamilyWidget from "@/components/chat/OnlineFamilyWidget";
+import { useCreateDirectChat } from "@/hooks/useChat";
 
 const sections = [
   {
@@ -52,7 +54,8 @@ const sections = [
 
 const Dashboard = () => {
   const { user, loading } = useAuth();
-
+  const navigate = useNavigate();
+  const createDirectChat = useCreateDirectChat();
   const queryClient = useQueryClient();
 
   if (loading || !user) return null;
@@ -61,6 +64,15 @@ const Dashboard = () => {
 
   const handleRefresh = async () => {
     await queryClient.invalidateQueries();
+  };
+
+  const handleAvatarClick = async (userId: string) => {
+    try {
+      const threadId = await createDirectChat(userId);
+      if (threadId) navigate(`/chat?thread=${threadId}`);
+    } catch {
+      navigate("/chat");
+    }
   };
 
   return (
@@ -80,6 +92,8 @@ const Dashboard = () => {
             Welcome back to the Fomuso Family Hub 🏡
           </p>
         </motion.div>
+
+        <OnlineFamilyWidget onAvatarClick={handleAvatarClick} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {sections.map((s, i) => (
