@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { DollarSign, CheckCircle, AlertTriangle, Clock, Plus, FileText, Download } from "lucide-react";
+import { DollarSign, CheckCircle, AlertTriangle, Clock, Plus, FileText, Download, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import AppNav from "@/components/AppNav";
-import { useNjangiMembers, useNjangiPeriod, useNjangiPayments, useRecordPayment, useAllNjangiPeriods } from "@/hooks/useNjangi";
+import { useNjangiMembers, useNjangiPeriod, useNjangiPayments, useRecordPayment, useAllNjangiPeriods, useUpdatePayment, useDeletePayment } from "@/hooks/useNjangi";
 import { getDeadlineLabel, getDaysToDeadline, statusConfig, MONTH_NAMES, PAYMENT_METHODS, getLastSunday, sortByBirthOrder } from "@/lib/njangi-utils";
 
 const now = new Date();
@@ -25,6 +25,7 @@ const Njangi = () => {
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
+  const [editPayment, setEditPayment] = useState<any>(null);
   const { toast } = useToast();
 
   const { data: members = [] } = useNjangiMembers();
@@ -32,6 +33,8 @@ const Njangi = () => {
   const { data: payments = [] } = useNjangiPayments(period?.id);
   const { data: yearPeriods = [] } = useAllNjangiPeriods(selectedYear);
   const recordPayment = useRecordPayment();
+  const updatePayment = useUpdatePayment();
+  const deletePayment = useDeletePayment();
 
   if (loading || !user) return null;
 
@@ -174,6 +177,7 @@ const Njangi = () => {
               const expected = Number(m.expected_monthly_amount || 0);
               const memberBalance = Math.max(0, expected - paid);
               const indicator = paid <= 0 ? "🔴" : paid >= expected ? "🟢" : "🟡";
+              const memberPayments = payments.filter((p: any) => p.member_id === m.id);
               return (
                 <Card key={m.id} className="rounded-xl border">
                   <CardContent className="p-4">
@@ -188,17 +192,61 @@ const Njangi = () => {
                         + Pay
                       </Button>
                     </div>
-                    <div className="grid grid-cols-3 gap-2 text-xs font-display">
-                      <div><p className="text-muted-foreground">Expected</p><p className="font-semibold">{expected} FCFA</p></div>
-                      <div><p className="text-muted-foreground">Paid</p><p className="font-semibold text-primary">{paid} FCFA</p></div>
-                      <div><p className="text-muted-foreground">Left</p><p className="font-semibold">{memberBalance} FCFA</p></div>
+                    <div className="grid grid-cols-3 gap-2 text-xs font-display mb-2">
+                      <div><p className="text-muted-foreground">Expected</p><p className="font-semibold">{expected.toLocaleString()} FCFA</p></div>
+                      <div><p className="text-muted-foreground">Paid</p><p className="font-semibold text-primary">{paid.toLocaleString()} FCFA</p></div>
+                      <div><p className="text-muted-foreground">Left</p><p className="font-semibold">{memberBalance.toLocaleString()} FCFA</p></div>
                     </div>
+                    {memberPayments.length > 0 && (
+                      <div className="border-t pt-2 mt-1 space-y-1">
+                        {memberPayments.map((p: any) => (
+                          <div key={p.id} className="flex items-center justify-between text-xs font-display">
+                            <span className="text-muted-foreground">{p.payment_date} · {Number(p.amount).toLocaleString()} FCFA</span>
+                            <div className="flex gap-1">
+                              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setEditPayment(p)}>
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-6 w-6 text-destructive hover:text-destructive"
+                                onClick={async () => {
+                                  if (!confirm("Delete this payment?")) return;
+                                  try {
+                                    await deletePayment.mutateAsync({ id: p.id, period_id: p.period_id });
+                                    toast({ title: "🗑️ Payment deleted" });
+                                  } catch (err: any) {
+                                    toast({ title: "Error", description: err.message, variant: "destructive" });
+                                  }
+                                }}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               );
             })}
           </div>
         </motion.div>
+
+        {/* Edit Payment Dialog */}
+        <Dialog open={!!editPayment} onOpenChange={(open) => !open && setEditPayment(null)}>
+          <DialogContent>
+            {editPayment && (
+              <EditPaymentForm
+                payment={editPayment}
+                updatePayment={updatePayment}
+                toast={toast}
+                onClose={() => setEditPayment(null)}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* Annual Schedule */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
@@ -352,5 +400,66 @@ const RegisterView = ({ payments }: { payments: any[] }) => (
     )}
   </>
 );
+
+// Edit Payment Form
+const EditPaymentForm = ({ payment, updatePayment, toast, onClose }: any) => {
+  const [amount, setAmount] = useState(String(payment.amount));
+  const [paymentDate, setPaymentDate] = useState(payment.payment_date);
+  const [method, setMethod] = useState(payment.payment_method);
+  const [note, setNote] = useState(payment.note || "");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!amount) return;
+    try {
+      await updatePayment.mutateAsync({
+        id: payment.id,
+        period_id: payment.period_id,
+        amount: Number(amount),
+        payment_date: paymentDate,
+        payment_method: method,
+        note: note || undefined,
+      });
+      toast({ title: "✅ Payment updated!" });
+      onClose();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
+  };
+
+  return (
+    <>
+      <DialogHeader><DialogTitle className="font-display">✏️ Edit Payment</DialogTitle></DialogHeader>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label className="font-display">Amount (FCFA)</Label>
+          <Input type="number" min="1" value={amount} onChange={(e) => setAmount(e.target.value)} required />
+        </div>
+        <div>
+          <Label className="font-display">Payment Date</Label>
+          <Input type="date" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} required />
+        </div>
+        <div>
+          <Label className="font-display">Payment Method</Label>
+          <Select value={method} onValueChange={setMethod}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {PAYMENT_METHODS.map((pm) => (
+                <SelectItem key={pm.value} value={pm.value}>{pm.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label className="font-display">Note (optional)</Label>
+          <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} />
+        </div>
+        <Button type="submit" className="w-full rounded-full font-display" disabled={updatePayment.isPending}>
+          {updatePayment.isPending ? "Saving..." : "Update Payment"}
+        </Button>
+      </form>
+    </>
+  );
+};
 
 export default Njangi;
