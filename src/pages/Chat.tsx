@@ -111,7 +111,7 @@ const Chat = () => {
               </ScrollArea>
             </div>
           ) : (
-            <div className="w-full flex flex-col bg-muted/30">
+            <div className="w-full flex flex-col bg-muted/30 pb-16">
               {selectedThread && <MessagePanel thread={selectedThread} onBack={handleBack} currentUserId={user?.id || ""} onlineUserIds={onlineUsers.map((u) => u.user_id)} />}
             </div>
           )}
