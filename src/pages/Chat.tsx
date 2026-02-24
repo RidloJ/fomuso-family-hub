@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
-import { ArrowLeft, Send, MessageCircle, Search, Plus, MoreVertical, Pencil, Trash2, X, Check } from "lucide-react";
+import { ArrowLeft, Send, MessageCircle, Search, Plus, MoreVertical, Pencil, Trash2, X, Check, Paperclip, Image, FileText, Download } from "lucide-react";
 import { format, isToday, isYesterday } from "date-fns";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -256,7 +256,10 @@ const MessagePanel = ({
   const [sending, setSending] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -265,15 +268,52 @@ const MessagePanel = ({
   }, [messages]);
 
   const handleSend = async () => {
-    if (!input.trim() || sending) return;
+    if ((!input.trim() && !pendingFile) || sending) return;
     setSending(true);
     try {
-      await sendMessage(thread.id, input);
+      let attachment: { url: string; type: string; name: string } | undefined;
+
+      if (pendingFile) {
+        setUploading(true);
+        const ext = pendingFile.name.split(".").pop();
+        const filePath = `${currentUserId}/${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from("chat-attachments")
+          .upload(filePath, pendingFile);
+        if (upErr) throw upErr;
+
+        const { data: urlData } = supabase.storage
+          .from("chat-attachments")
+          .getPublicUrl(filePath);
+
+        attachment = {
+          url: urlData.publicUrl,
+          type: pendingFile.type.startsWith("image/") ? "image" : "file",
+          name: pendingFile.name,
+        };
+        setUploading(false);
+      }
+
+      await sendMessage(thread.id, input, attachment);
       setInput("");
+      setPendingFile(null);
     } catch {
       toast.error("Failed to send message");
+      setUploading(false);
     }
     setSending(false);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("File must be under 10MB");
+        return;
+      }
+      setPendingFile(file);
+    }
+    e.target.value = "";
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -459,7 +499,31 @@ const MessagePanel = ({
                             <span className="italic text-muted-foreground text-xs">🚫 Message deleted</span>
                           ) : (
                             <>
-                              {msg.content}
+                              {msg.attachment_url && msg.attachment_type === "image" && (
+                                <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer" className="block mb-1">
+                                  <img
+                                    src={msg.attachment_url}
+                                    alt={msg.attachment_name || "Image"}
+                                    className="max-w-[240px] max-h-[200px] rounded-lg object-cover cursor-pointer"
+                                    loading="lazy"
+                                  />
+                                </a>
+                              )}
+                              {msg.attachment_url && msg.attachment_type === "file" && (
+                                <a
+                                  href={msg.attachment_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={`flex items-center gap-2 mb-1 px-2 py-1.5 rounded-lg text-xs ${
+                                    isMine ? "bg-primary-foreground/10" : "bg-muted"
+                                  }`}
+                                >
+                                  <FileText className="h-4 w-4 flex-shrink-0" />
+                                  <span className="truncate max-w-[160px]">{msg.attachment_name || "File"}</span>
+                                  <Download className="h-3.5 w-3.5 flex-shrink-0 ml-auto" />
+                                </a>
+                              )}
+                              {msg.content && <span>{msg.content}</span>}
                               {msg.edited_at && (
                                 <span className="text-[9px] opacity-60 ml-1">(edited)</span>
                               )}
@@ -481,19 +545,53 @@ const MessagePanel = ({
       </div>
 
       {/* Composer */}
-      <div className="p-3 border-t border-border bg-card">
+      <div className="p-3 border-t border-border bg-card space-y-2">
+        {pendingFile && (
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-lg text-xs">
+            {pendingFile.type.startsWith("image/") ? (
+              <Image className="h-4 w-4 text-primary flex-shrink-0" />
+            ) : (
+              <FileText className="h-4 w-4 text-primary flex-shrink-0" />
+            )}
+            <span className="truncate flex-1">{pendingFile.name}</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-5 w-5 p-0 rounded-full"
+              onClick={() => setPendingFile(null)}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+        )}
         <div className="flex items-center gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
+            className="hidden"
+            onChange={handleFileSelect}
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="rounded-full h-10 w-10 p-0 flex-shrink-0"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={sending}
+          >
+            <Paperclip className="h-4 w-4" />
+          </Button>
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type a message..."
+            placeholder={pendingFile ? "Add a caption..." : "Type a message..."}
             className="rounded-full flex-1"
             disabled={sending}
           />
           <Button
             onClick={handleSend}
-            disabled={!input.trim() || sending}
+            disabled={(!input.trim() && !pendingFile) || sending}
             size="sm"
             className="rounded-full h-10 w-10 p-0"
           >
