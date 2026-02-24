@@ -10,8 +10,15 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Camera, Lock, Moon, Sun, Bell, User, Eye, EyeOff } from "lucide-react";
+import { Camera, Lock, Moon, Sun, Bell, User, Eye, EyeOff, Volume2, BellRing } from "lucide-react";
 import { toast } from "sonner";
+import {
+  requestNotificationPermission,
+  isSoundEnabled,
+  isPushEnabled,
+  setSoundEnabled,
+  setPushEnabled,
+} from "@/hooks/useNotifications";
 
 const Settings = () => {
   const { user, loading } = useAuth();
@@ -23,6 +30,8 @@ const Settings = () => {
   const [changingPassword, setChangingPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [soundOn, setSoundOn] = useState(() => isSoundEnabled());
+  const [pushOn, setPushOn] = useState(() => isPushEnabled());
   const [notifications, setNotifications] = useState({
     events: true,
     gallery: true,
@@ -257,6 +266,43 @@ const Settings = () => {
             <CardDescription>Choose what you want to be notified about</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Volume2 className="h-4 w-4 text-muted-foreground" />
+                <span className="font-display">Chat Sound Alerts 🔔</span>
+              </div>
+              <Switch
+                checked={soundOn}
+                onCheckedChange={(v) => {
+                  setSoundOn(v);
+                  setSoundEnabled(v);
+                  toast.success(v ? "Sound alerts enabled" : "Sound alerts disabled");
+                }}
+              />
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <BellRing className="h-4 w-4 text-muted-foreground" />
+                <span className="font-display">Push Notifications 📲</span>
+              </div>
+              <Switch
+                checked={pushOn}
+                onCheckedChange={async (v) => {
+                  if (v) {
+                    const granted = await requestNotificationPermission();
+                    if (!granted) {
+                      toast.error("Notification permission denied. Enable it in your browser settings.");
+                      return;
+                    }
+                  }
+                  setPushOn(v);
+                  setPushEnabled(v);
+                  toast.success(v ? "Push notifications enabled" : "Push notifications disabled");
+                }}
+              />
+            </div>
+            <Separator />
             <div className="flex items-center justify-between">
               <span className="font-display">Event Reminders 🎉</span>
               <Switch
