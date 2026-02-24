@@ -77,8 +77,8 @@ const Events = () => {
       if (error) throw error;
       const year = currentMonth.getFullYear();
       return (data || []).map((m: any) => {
-        const dob = new Date(m.date_of_birth);
-        const birthdayDate = new Date(year, dob.getMonth(), dob.getDate(), 0, 0, 0);
+        const [y, mo, d] = m.date_of_birth.split("-").map(Number);
+        const birthdayDate = new Date(year, mo - 1, d, 0, 0, 0);
         return {
           id: `birthday-${m.id}-${year}`,
           title: `🎂 ${m.first_name} ${m.last_name}'s Birthday`,
