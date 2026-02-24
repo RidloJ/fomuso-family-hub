@@ -494,6 +494,10 @@ const NewChatPanel = ({
   onClose: () => void;
   currentUserId: string;
 }) => {
+  const onlineUsers = usePresence();
+  const onlineUserIds = onlineUsers.map((u) => u.user_id);
+  const [search, setSearch] = useState("");
+
   const { data: profiles = [] } = useQuery({
     queryKey: ["all-profiles-chat"],
     queryFn: async () => {
@@ -507,31 +511,61 @@ const NewChatPanel = ({
     },
   });
 
+  const filtered = profiles
+    .filter((p) => !search || p.full_name.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => {
+      const aOnline = onlineUserIds.includes(a.user_id) ? 0 : 1;
+      const bOnline = onlineUserIds.includes(b.user_id) ? 0 : 1;
+      if (aOnline !== bOnline) return aOnline - bOnline;
+      return a.full_name.localeCompare(b.full_name);
+    });
+
   return (
     <div className="border-b-2 border-primary/20 bg-primary/5">
-      <div className="p-3 flex items-center justify-between gap-2">
-        <p className="font-display font-semibold text-sm flex-shrink-0">✨ New Chat</p>
-        <Button variant="destructive" size="sm" onClick={onClose} className="rounded-full h-7 w-7 p-0 flex-shrink-0">
-          <X className="h-3.5 w-3.5" />
-        </Button>
+      <div className="p-3 space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <p className="font-display font-semibold text-sm flex-shrink-0">✨ New Chat</p>
+          <Button variant="destructive" size="sm" onClick={onClose} className="rounded-full h-7 w-7 p-0 flex-shrink-0">
+            <X className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+        <Input
+          placeholder="Search family members..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="rounded-full h-8 text-sm"
+        />
       </div>
-      {profiles.map((p) => {
+      {filtered.map((p) => {
         const initials = p.full_name.split(" ").map((n: string) => n[0]).join("").toUpperCase();
+        const isOnline = onlineUserIds.includes(p.user_id);
         return (
           <button
             key={p.user_id}
             onClick={() => onStartChat(p.user_id)}
             className="w-full flex items-center gap-3 p-3 hover:bg-primary/10 transition-colors"
           >
-            <Avatar className="h-9 w-9">
-              <AvatarImage src={p.avatar_url || ""} />
-              <AvatarFallback className="text-xs font-display">{initials}</AvatarFallback>
-            </Avatar>
-            <span className="font-display text-sm">{p.full_name}</span>
+            <div className="relative">
+              <Avatar className="h-9 w-9">
+                <AvatarImage src={p.avatar_url || ""} />
+                <AvatarFallback className="text-xs font-display">{initials}</AvatarFallback>
+              </Avatar>
+              <span
+                className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-background ${
+                  isOnline ? "bg-warm-green" : "bg-muted-foreground/40"
+                }`}
+              />
+            </div>
+            <div className="flex flex-col items-start">
+              <span className="font-display text-sm">{p.full_name}</span>
+              <span className="text-[10px] text-muted-foreground">
+                {isOnline ? "🟢 Online" : "Offline"}
+              </span>
+            </div>
           </button>
         );
       })}
-      {profiles.length === 0 && (
+      {filtered.length === 0 && (
         <p className="p-4 text-center text-muted-foreground text-sm font-display">No family members found</p>
       )}
     </div>
