@@ -224,6 +224,7 @@ export type Database = {
           first_name: string
           id: string
           last_name: string
+          member_type: Database["public"]["Enums"]["family_member_type"]
           mother: string | null
           updated_at: string
         }
@@ -235,6 +236,7 @@ export type Database = {
           first_name: string
           id?: string
           last_name: string
+          member_type?: Database["public"]["Enums"]["family_member_type"]
           mother?: string | null
           updated_at?: string
         }
@@ -246,6 +248,7 @@ export type Database = {
           first_name?: string
           id?: string
           last_name?: string
+          member_type?: Database["public"]["Enums"]["family_member_type"]
           mother?: string | null
           updated_at?: string
         }
@@ -540,6 +543,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "member"
+      family_member_type:
+        | "grandpa"
+        | "grandma"
+        | "children"
+        | "grandchildren"
+        | "wife"
       njangi_payment_method: "cash" | "interac" | "bank_transfer" | "other"
       njangi_status: "not_started" | "partial" | "completed" | "overpaid"
     }
@@ -670,6 +679,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "member"],
+      family_member_type: [
+        "grandpa",
+        "grandma",
+        "children",
+        "grandchildren",
+        "wife",
+      ],
       njangi_payment_method: ["cash", "interac", "bank_transfer", "other"],
       njangi_status: ["not_started", "partial", "completed", "overpaid"],
     },
