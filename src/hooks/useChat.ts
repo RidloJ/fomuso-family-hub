@@ -26,6 +26,9 @@ export interface ChatMessage {
   created_at: string;
   edited_at: string | null;
   is_deleted: boolean;
+  attachment_url: string | null;
+  attachment_type: string | null;
+  attachment_name: string | null;
   sender?: { full_name: string; avatar_url: string | null };
 }
 
@@ -186,13 +189,20 @@ export const useSendMessage = () => {
   const queryClient = useQueryClient();
 
   return useCallback(
-    async (threadId: string, content: string) => {
-      if (!user || !content.trim()) return;
+    async (
+      threadId: string,
+      content: string,
+      attachment?: { url: string; type: string; name: string }
+    ) => {
+      if (!user || (!content.trim() && !attachment)) return;
 
       const { error } = await supabase.from("chat_messages").insert({
         thread_id: threadId,
         sender_id: user.id,
         content: content.trim(),
+        attachment_url: attachment?.url || null,
+        attachment_type: attachment?.type || null,
+        attachment_name: attachment?.name || null,
       });
       if (error) throw error;
 
