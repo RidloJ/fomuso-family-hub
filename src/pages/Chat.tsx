@@ -69,7 +69,7 @@ const Chat = () => {
       <AppNav />
       <div className="flex-1 max-w-6xl mx-auto w-full flex overflow-hidden" style={{ height: "calc(100vh - 73px)" }}>
         {/* Thread list sidebar */}
-        <div className={`w-full md:w-80 md:min-w-[320px] border-r border-border flex flex-col bg-card ${showMobileMessages ? "hidden md:flex" : "flex"}`}>
+        <div className={`w-full md:w-80 md:min-w-[320px] md:max-w-[320px] border-r border-border flex flex-col bg-card overflow-hidden ${showMobileMessages ? "hidden md:flex" : "flex"}`}>
           <div className="p-4 border-b border-border space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="font-display text-lg font-bold">💬 Chats</h2>
