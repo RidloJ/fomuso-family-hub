@@ -88,16 +88,19 @@ export type Database = {
       chat_thread_members: {
         Row: {
           joined_at: string
+          last_read_at: string | null
           member_id: string
           thread_id: string
         }
         Insert: {
           joined_at?: string
+          last_read_at?: string | null
           member_id: string
           thread_id: string
         }
         Update: {
           joined_at?: string
+          last_read_at?: string | null
           member_id?: string
           thread_id?: string
         }

@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { useUnreadCount } from "@/hooks/useUnreadCount";
 
 const navItems = [
   { to: "/dashboard", label: "Home", icon: Home, emoji: "🏠" },
@@ -21,6 +22,7 @@ const AppNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const unreadCount = useUnreadCount();
 
   const { data: profile } = useQuery({
     queryKey: ["profile-nav", user?.id],
@@ -79,10 +81,15 @@ const AppNav = () => {
               variant={location.pathname === item.to ? "default" : "ghost"}
               size="sm"
               asChild
-              className="rounded-full font-display"
+              className="rounded-full font-display relative"
             >
               <Link to={item.to}>
                 {item.emoji} {item.label}
+                {item.to === "/chat" && unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 h-5 min-w-5 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
               </Link>
             </Button>
           ))}
@@ -122,7 +129,7 @@ const AppNav = () => {
               <Link
                 key={item.to}
                 to={item.to}
-                className={`flex flex-col items-center gap-0.5 py-2 px-1.5 rounded-xl transition-colors ${
+                className={`relative flex flex-col items-center gap-0.5 py-2 px-1.5 rounded-xl transition-colors ${
                   isActive
                     ? "text-primary"
                     : "text-muted-foreground"
@@ -130,6 +137,11 @@ const AppNav = () => {
               >
                 <item.icon className={`h-5 w-5 ${isActive ? "text-primary" : ""}`} />
                 <span className="text-[10px] font-display font-medium">{item.label}</span>
+                {item.to === "/chat" && unreadCount > 0 && (
+                  <span className="absolute top-1 right-0 h-4 min-w-4 px-0.5 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
               </Link>
             );
           })}

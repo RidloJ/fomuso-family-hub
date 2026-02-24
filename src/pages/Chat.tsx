@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import AppNav from "@/components/AppNav";
 import { useThreads, useMessages, useSendMessage, useEnsureGroupChat, useCreateDirectChat, ChatThread, ChatMessage } from "@/hooks/useChat";
+import { useMarkThreadRead } from "@/hooks/useUnreadCount";
 import { usePresence } from "@/hooks/usePresence";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,6 +28,7 @@ const Chat = () => {
   const [showNewChat, setShowNewChat] = useState(false);
   const ensureGroupChat = useEnsureGroupChat();
   const createDirectChat = useCreateDirectChat();
+  const markThreadRead = useMarkThreadRead();
   const onlineUsers = usePresence();
 
   const { data: threads = [], isLoading: threadsLoading } = useThreads();
@@ -39,6 +41,7 @@ const Chat = () => {
     setSelectedThreadId(threadId);
     setShowMobileMessages(true);
     setShowNewChat(false);
+    markThreadRead(threadId);
   };
 
   const handleStartDirectChat = async (otherUserId: string) => {
