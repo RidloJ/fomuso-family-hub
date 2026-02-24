@@ -129,11 +129,11 @@ const Gallery = () => {
   return (
     <div className="min-h-screen bg-background">
       <AppNav />
-      <main className="max-w-6xl mx-auto px-6 py-8">
-        <div className="flex items-center justify-between mb-8">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-24 md:pb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="font-display text-3xl font-bold">📸 Family Gallery</h1>
-            <p className="text-muted-foreground font-display mt-1">Our awesome family memories! ✨</p>
+            <h1 className="font-display text-2xl sm:text-3xl font-bold">📸 Family Gallery</h1>
+            <p className="text-muted-foreground font-display mt-1 text-sm sm:text-base">Our awesome family memories! ✨</p>
           </div>
           <Dialog open={newAlbumOpen} onOpenChange={setNewAlbumOpen}>
             <DialogTrigger asChild>

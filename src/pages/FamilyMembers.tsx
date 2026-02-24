@@ -86,16 +86,16 @@ const FamilyMembers = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <AppNav />
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className="max-w-6xl mx-auto px-4 py-6 sm:py-8 pb-24 md:pb-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div className="flex items-center gap-3">
-              <Users className="h-8 w-8 text-primary" />
-              <h1 className="font-display text-3xl font-bold">Family Registry 👨‍👩‍👧‍👦</h1>
+              <Users className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />
+              <h1 className="font-display text-2xl sm:text-3xl font-bold">Family Registry 👨‍👩‍👧‍👦</h1>
             </div>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
