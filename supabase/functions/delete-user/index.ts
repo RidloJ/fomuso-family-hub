@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 serve(async (req) => {
@@ -13,9 +13,8 @@ serve(async (req) => {
   }
 
   try {
-    // Verify the caller is authenticated and is an admin
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
+    if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -24,29 +23,29 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const anonKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!;
+    const anonKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY") || "";
 
-    // Create a client with the caller's token to verify they're admin
+    // Verify the caller's identity
     const callerClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const {
-      data: { user: caller },
-    } = await callerClient.auth.getUser();
-
-    if (!caller) {
+    const { data: { user: caller }, error: userError } = await callerClient.auth.getUser();
+    if (userError || !caller) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Check admin role
-    const { data: roleData } = await createClient(supabaseUrl, serviceRoleKey)
+    const callerId = caller.id;
+
+    // Check admin role using service role client
+    const adminClient = createClient(supabaseUrl, serviceRoleKey);
+    const { data: roleData } = await adminClient
       .from("user_roles")
       .select("role")
-      .eq("user_id", caller.id)
+      .eq("user_id", callerId)
       .eq("role", "admin")
       .single();
 
@@ -66,22 +65,18 @@ serve(async (req) => {
       });
     }
 
-    // Prevent self-deletion
-    if (user_id === caller.id) {
-      return new Response(
-        JSON.stringify({ error: "Cannot delete yourself" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+    if (user_id === callerId) {
+      return new Response(JSON.stringify({ error: "Cannot delete yourself" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    // Delete user using service role (cascades to profiles via FK)
-    const adminClient = createClient(supabaseUrl, serviceRoleKey);
+    // Delete user
     const { error } = await adminClient.auth.admin.deleteUser(user_id);
 
     if (error) {
+      console.error("Delete user error:", error);
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -93,6 +88,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
+    console.error("Unexpected error:", err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
