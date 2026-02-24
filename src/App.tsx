@@ -14,6 +14,7 @@ import Events from "./pages/Events";
 import FamilyMembers from "./pages/FamilyMembers";
 import Njangi from "./pages/Njangi";
 import NotFound from "./pages/NotFound";
+import InstallPrompt from "./components/InstallPrompt";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <InstallPrompt />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
