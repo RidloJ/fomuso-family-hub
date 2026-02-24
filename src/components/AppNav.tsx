@@ -1,9 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
-import { Heart, LogOut, Camera, Home, Calendar, Users, PiggyBank, Settings } from "lucide-react";
+import { Heart, LogOut, Camera, Home, Calendar, Users, PiggyBank } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
   { to: "/dashboard", label: "Home", icon: Home, emoji: "🏠" },
@@ -16,11 +19,32 @@ const navItems = [
 const AppNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
+
+  const { data: profile } = useQuery({
+    queryKey: ["profile-nav", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await supabase
+        .from("profiles")
+        .select("full_name, avatar_url")
+        .eq("user_id", user.id)
+        .single();
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const initials = profile?.full_name
+    ? profile.full_name.split(" ").map((n: string) => n[0]).join("").toUpperCase()
+    : "?";
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/");
   };
+
+  const isSettingsActive = location.pathname === "/settings";
 
   return (
     <>
@@ -49,12 +73,16 @@ const AppNav = () => {
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" asChild className="rounded-full font-display text-xs sm:text-sm">
-            <Link to="/settings">
-              <Settings className="h-4 w-4 mr-1" /> <span className="hidden sm:inline">Settings ⚙️</span><span className="sm:hidden">⚙️</span>
-            </Link>
-          </Button>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/settings"
+            className={`rounded-full ring-2 transition-all ${isSettingsActive ? "ring-primary" : "ring-transparent hover:ring-border"}`}
+          >
+            <Avatar className="h-8 w-8 sm:h-9 sm:w-9">
+              <AvatarImage src={profile?.avatar_url || ""} alt="Profile" />
+              <AvatarFallback className="text-xs font-display bg-muted">{initials}</AvatarFallback>
+            </Avatar>
+          </Link>
           <Button variant="ghost" size="sm" onClick={handleLogout} className="rounded-full font-display text-xs sm:text-sm">
             <LogOut className="h-4 w-4 mr-1 sm:mr-2" /> <span className="hidden sm:inline">Bye 👋</span><span className="sm:hidden">👋</span>
           </Button>
