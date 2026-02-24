@@ -13,6 +13,7 @@ import Gallery from "./pages/Gallery";
 import Events from "./pages/Events";
 import FamilyMembers from "./pages/FamilyMembers";
 import Njangi from "./pages/Njangi";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import InstallPrompt from "./components/InstallPrompt";
 
@@ -36,6 +37,7 @@ const App = () => (
           <Route path="/events" element={<Events />} />
           <Route path="/family" element={<FamilyMembers />} />
           <Route path="/njangi" element={<Njangi />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
