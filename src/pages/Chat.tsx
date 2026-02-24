@@ -261,6 +261,25 @@ const MessagePanel = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const handleDownload = async (url: string, filename: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+      toast.success("Download started 📥");
+    } catch {
+      // Fallback: open in new tab
+      window.open(url, "_blank");
+    }
+  };
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -500,28 +519,43 @@ const MessagePanel = ({
                           ) : (
                             <>
                               {msg.attachment_url && msg.attachment_type === "image" && (
-                                <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer" className="block mb-1">
-                                  <img
-                                    src={msg.attachment_url}
-                                    alt={msg.attachment_name || "Image"}
-                                    className="max-w-[240px] max-h-[200px] rounded-lg object-cover cursor-pointer"
-                                    loading="lazy"
-                                  />
-                                </a>
+                                <div className="relative group/img mb-1">
+                                  <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer">
+                                    <img
+                                      src={msg.attachment_url}
+                                      alt={msg.attachment_name || "Image"}
+                                      className="max-w-[240px] max-h-[200px] rounded-lg object-cover cursor-pointer"
+                                      loading="lazy"
+                                    />
+                                  </a>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDownload(msg.attachment_url!, msg.attachment_name || "image");
+                                    }}
+                                    className="absolute bottom-2 right-2 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity shadow-md"
+                                    title="Download"
+                                  >
+                                    <Download className="h-4 w-4 text-foreground" />
+                                  </button>
+                                </div>
                               )}
                               {msg.attachment_url && msg.attachment_type === "file" && (
-                                <a
-                                  href={msg.attachment_url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
+                                <div
                                   className={`flex items-center gap-2 mb-1 px-2 py-1.5 rounded-lg text-xs ${
                                     isMine ? "bg-primary-foreground/10" : "bg-muted"
                                   }`}
                                 >
                                   <FileText className="h-4 w-4 flex-shrink-0" />
                                   <span className="truncate max-w-[160px]">{msg.attachment_name || "File"}</span>
-                                  <Download className="h-3.5 w-3.5 flex-shrink-0 ml-auto" />
-                                </a>
+                                  <button
+                                    onClick={() => handleDownload(msg.attachment_url!, msg.attachment_name || "file")}
+                                    className="ml-auto flex-shrink-0"
+                                    title="Download"
+                                  >
+                                    <Download className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
                               )}
                               {msg.content && <span>{msg.content}</span>}
                               {msg.edited_at && (
