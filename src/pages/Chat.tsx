@@ -210,25 +210,33 @@ const ThreadItem = ({
     return format(date, "MMM d");
   };
 
+  const formatLastSeen = (dateStr: string | null | undefined) => {
+    if (!dateStr) return "Never seen";
+    const date = new Date(dateStr);
+    if (isToday(date)) return `Last seen ${format(date, "h:mm a")}`;
+    if (isYesterday(date)) return "Last seen yesterday";
+    return `Last seen ${format(date, "MMM d")}`;
+  };
+
   return (
     <button
       onClick={onClick}
       className={`w-full flex items-center gap-3 p-3 text-left transition-colors hover:bg-muted/50 ${
         isActive ? "bg-primary/10 border-l-2 border-l-primary" : ""
-      }`}
+      } ${isOnline && !isActive ? "bg-accent/30" : ""}`}
     >
       <div className="relative">
-        <Avatar className="h-11 w-11">
+        <Avatar className={`h-11 w-11 ${isOnline ? "ring-2 ring-green-500 ring-offset-1 ring-offset-background" : ""}`}>
           <AvatarImage src={avatarUrl || ""} />
           <AvatarFallback className="text-sm font-display">{initials}</AvatarFallback>
         </Avatar>
         {isOnline && (
-          <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-warm-green border-2 border-background" />
+          <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-background" />
         )}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between">
-          <p className="font-display font-semibold text-sm truncate">
+          <p className={`font-display font-semibold text-sm truncate ${isOnline ? "text-foreground" : ""}`}>
             {thread.type === "group" ? "👨‍👩‍👧‍👦 " : ""}{thread.title || "Chat"}
           </p>
           {thread.lastMessage && (
@@ -237,6 +245,11 @@ const ThreadItem = ({
             </span>
           )}
         </div>
+        {thread.type === "direct" && (
+          <p className={`text-[10px] ${isOnline ? "text-green-600 dark:text-green-400 font-medium" : "text-muted-foreground"}`}>
+            {isOnline ? "🟢 Online now" : formatLastSeen(otherMember?.last_seen_at)}
+          </p>
+        )}
         {thread.lastMessage && (
           <p className="text-xs text-muted-foreground truncate">
             {thread.lastMessage.sender_name}: {thread.lastMessage.content}

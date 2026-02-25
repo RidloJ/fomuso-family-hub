@@ -17,7 +17,7 @@ export interface ChatThread {
     sender_name: string;
   };
   unreadCount?: number;
-  members?: { member_id: string; full_name: string; avatar_url: string | null }[];
+  members?: { member_id: string; full_name: string; avatar_url: string | null; last_seen_at: string | null }[];
 }
 
 export interface ChatMessage {
@@ -80,7 +80,7 @@ export const useThreads = () => {
         const memberIds = (members || []).map((m) => m.member_id);
         const { data: profiles } = await supabase
           .from("profiles")
-          .select("user_id, full_name, avatar_url")
+          .select("user_id, full_name, avatar_url, last_seen_at")
           .in("user_id", memberIds);
 
         let senderName = "";
@@ -107,6 +107,7 @@ export const useThreads = () => {
             member_id: p.user_id,
             full_name: p.full_name,
             avatar_url: p.avatar_url,
+            last_seen_at: p.last_seen_at,
           })),
         });
       }
