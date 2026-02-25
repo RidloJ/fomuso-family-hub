@@ -1,42 +1,49 @@
 
+Goal
+- Fix the Android home-screen launch problem where users are seeing the GitHub 404 page instead of the app.
 
-# Deploy to GitHub Pages
+What I found
+1. Your GitHub Pages deployment is already building with `GITHUB_PAGES=true`, so `base`, `start_url`, and `scope` are currently generated as `/fomuso-family-hub/`.
+2. The live manifest at `.../fomuso-family-hub/manifest.webmanifest` is correct right now (`start_url`, `scope`, and `id` all point to `/fomuso-family-hub/`).
+3. The screenshot shows `ridloj.github.io` (root domain) 404. That strongly indicates some Android users still have an older home-screen install/shortcut pointing to the root domain.
+4. There is one real routing escape bug in code: `src/pages/NotFound.tsx` uses `<a href="/">`, which can force users to the root domain on GitHub Pages and produce the same 404 experience.
 
-## Overview
-Set up the project for GitHub Pages hosting with automated deployment via GitHub Actions.
+Implementation plan
+1. Fix root-domain escape in app routing
+- File: `src/pages/NotFound.tsx`
+- Replace `<a href="/">` with React Router `<Link to="/">`.
+- Reason: keeps navigation inside the app basename (`/fomuso-family-hub`) instead of jumping to `https://ridloj.github.io/`.
 
-## Steps
+2. Add Android migration-safe PWA identity behavior
+- File: `vite.config.ts` (PWA manifest block)
+- Keep:
+  - `start_url: appBase`
+  - `scope: appBase`
+- Update identity strategy so existing Android installs created before the base-path fix can be upgraded instead of staying pinned to the old root shortcut.
+- Practical approach:
+  - Use a stable manifest `id` compatible with legacy installs for one migration cycle, then keep it stable going forward.
+- Reason: Android treats `id` as app identity. If identity changes, old broken installs often remain as separate entries.
 
-### 1. Connect to GitHub
-- Go to **Settings** (gear icon) in the Lovable editor, then **GitHub**, and click **Connect project**
-- Authorize the Lovable GitHub App and create a repository
+3. Improve install guidance for Android users
+- File: `src/components/InstallPrompt.tsx`
+- Add concise Android-specific recovery hint:
+  - “If your old home-screen icon opens a GitHub 404 page, remove that icon and reinstall from this page.”
+- Show this only for Android non-standalone mode.
+- Reason: for already-broken legacy shortcuts, one-time reinstall is usually required even after code fixes.
 
-### 2. Configure Vite for GitHub Pages
-- Update `vite.config.ts` to set `base` dynamically based on an environment variable or the GitHub Pages path (e.g., `/<repo-name>/`)
-- This ensures all assets load from the correct path when hosted under a subpath
+4. Verify end-to-end before release
+- Test matrix:
+  1) Fresh Android install from browser at `/fomuso-family-hub/` opens app correctly.
+  2) Existing old icon scenario: remove old icon, reinstall, relaunch.
+  3) In-app unknown route -> NotFound -> “Return to Home” stays inside app.
+  4) Login/logout and deep links still work under GitHub Pages subpath.
 
-### 3. Create GitHub Actions Workflow
-- Add `.github/workflows/deploy.yml` that:
-  - Triggers on pushes to `main`
-  - Installs dependencies with `npm ci`
-  - Builds the project with `npm run build`
-  - Deploys the `dist/` folder to the `gh-pages` branch using `peaceiris/actions-gh-pages`
+Technical notes
+- No backend/database changes are required.
+- This is purely frontend/PWA behavior (routing + manifest identity + install UX).
+- Main risk is manifest identity changes causing duplicate icons for some users; mitigation is stable post-migration ID and clear reinstall instruction.
 
-### 4. SPA Routing Fix
-- Add a `public/404.html` file that redirects all routes back to `index.html` using a small JavaScript redirect script
-- This is the standard workaround for client-side routing on GitHub Pages, which doesn't support server-side rewrites
-
-### 5. Enable GitHub Pages
-- After the first deployment, go to your GitHub repository **Settings > Pages** and set the source to the `gh-pages` branch
-
----
-
-## Technical Details
-
-**Files to create/modify:**
-- `vite.config.ts` -- add `base` config for the repo subpath
-- `.github/workflows/deploy.yml` -- GitHub Actions CI/CD workflow
-- `public/404.html` -- SPA routing redirect for GitHub Pages
-
-**Important consideration:** The backend (Lovable Cloud) URLs are absolute, so database and auth features will continue to work regardless of where the frontend is hosted. The `.env` variables will need to be set as GitHub Actions secrets or hardcoded in the build step.
-
+Expected outcome
+- New Android installs launch correctly into the app.
+- Existing users with legacy broken shortcuts have a clear recovery path.
+- Internal app 404 screen no longer sends users to the GitHub root 404.
