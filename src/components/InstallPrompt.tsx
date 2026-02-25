@@ -14,6 +14,7 @@ const InstallPrompt = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showBanner, setShowBanner] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
+  const [isAndroid, setIsAndroid] = useState(false);
 
   useEffect(() => {
     // Don't show if already installed as PWA
@@ -26,13 +27,17 @@ const InstallPrompt = () => {
     // Detect iOS Safari (no beforeinstallprompt support)
     const ua = navigator.userAgent;
     const isIOSDevice = /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
-    const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|Chrome/.test(ua);
+    const isAndroidDevice = /Android/.test(ua);
 
     if (isIOSDevice) {
       setIsIOS(true);
       // Show after a short delay so the page loads first
       const timer = setTimeout(() => setShowBanner(true), 3000);
       return () => clearTimeout(timer);
+    }
+
+    if (isAndroidDevice) {
+      setIsAndroid(true);
     }
 
     // Android / Chrome: listen for the native install prompt
@@ -88,9 +93,16 @@ const InstallPrompt = () => {
                     <strong>"Add to Home Screen"</strong> to install this app.
                   </p>
                 ) : (
-                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                    Add to your home screen for quick access — works offline too! ✨
-                  </p>
+                  <>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                      Add to your home screen for quick access — works offline too! ✨
+                    </p>
+                    {isAndroid && (
+                      <p className="text-xs text-muted-foreground/80 mt-1 leading-relaxed italic">
+                        If your old home-screen icon opens a 404 page, remove it and reinstall from here.
+                      </p>
+                    )}
+                  </>
                 )}
                 <div className="flex items-center gap-2 mt-3">
                   {!isIOS && deferredPrompt && (

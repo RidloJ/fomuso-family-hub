@@ -29,7 +29,7 @@ export default defineConfig(({ mode }) => {
           globPatterns: ["**/*.{js,css,html,ico,png,svg,jpg,jpeg,webp,woff,woff2}"],
         },
         manifest: {
-          id: appBase,
+          id: "/fomuso-family-hub/",
           name: "Fomuso Family Hub",
           short_name: "Fomuso",
           description: "The Fomuso Family's private space to share memories, plan events, and stay connected.",
