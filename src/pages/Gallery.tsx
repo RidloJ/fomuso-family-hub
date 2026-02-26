@@ -126,20 +126,40 @@ const Gallery = () => {
     }
   }
 
+  const branchEmojis: Record<string, string> = {
+    Yvonne: "👩‍👧‍👦",
+    Solo: "👨‍👧",
+    Bankom: "👨‍👦‍👦",
+    Nah: "👩‍👦",
+    Nandet: "👶",
+  };
+
+  const branchColors: Record<string, string> = {
+    Yvonne: "from-primary/15 to-primary/5",
+    Solo: "from-accent/50 to-accent/20",
+    Bankom: "from-secondary/50 to-secondary/20",
+    Nah: "from-muted to-muted/40",
+    Nandet: "from-primary/10 to-accent/30",
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <AppNav />
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-24 md:pb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="font-display text-2xl sm:text-3xl font-bold">📸 Family Gallery</h1>
-            <p className="text-muted-foreground font-display mt-1 text-sm sm:text-base">Our awesome family memories! ✨</p>
-          </div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+            <h1 className="font-display text-3xl sm:text-4xl font-bold">
+              📸 Family Gallery
+            </h1>
+            <p className="text-muted-foreground font-display mt-1 text-sm sm:text-base">
+              Relive our best moments together! ✨
+            </p>
+          </motion.div>
           <Dialog open={newAlbumOpen} onOpenChange={setNewAlbumOpen}>
             <DialogTrigger asChild>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button className="rounded-full font-display shadow-lg">
-                  <Plus className="h-4 w-4 mr-2" /> New Album 🎊
+                <Button className="rounded-full font-display shadow-lg gap-2">
+                  <Plus className="h-4 w-4" /> New Album 🎊
                 </Button>
               </motion.div>
             </DialogTrigger>
@@ -215,38 +235,66 @@ const Gallery = () => {
             <p className="text-muted-foreground font-display">Create your first album to start sharing memories 🌟</p>
           </motion.div>
         ) : (
-          <div className="space-y-12">
-            {FAMILY_BRANCHES.map((branch) => {
+          <div className="space-y-8">
+            {FAMILY_BRANCHES.map((branch, bi) => {
               const branchAlbums = albumsByFamily[branch] || [];
               return (
-                <section key={branch}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <h2 className="font-display text-2xl font-bold">{branch}'s Family</h2>
-                    <span className="text-sm text-muted-foreground font-display">
-                      {branchAlbums.length} album{branchAlbums.length !== 1 ? "s" : ""}
-                    </span>
+                <motion.section
+                  key={branch}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: bi * 0.08 }}
+                  className={`rounded-2xl bg-gradient-to-br ${branchColors[branch]} border border-border p-5`}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{branchEmojis[branch]}</span>
+                      <h2 className="font-display text-xl sm:text-2xl font-bold">{branch}'s Family</h2>
+                      <span className="bg-background/60 text-xs font-display font-semibold px-2 py-0.5 rounded-full text-muted-foreground">
+                        {branchAlbums.length}
+                      </span>
+                    </div>
+                    {branchAlbums.length > 3 && (
+                      <Button variant="ghost" size="sm" className="rounded-full font-display text-xs text-primary" onClick={() => {}}>
+                        See all →
+                      </Button>
+                    )}
                   </div>
                   {branchAlbums.length === 0 ? (
-                    <p className="text-muted-foreground font-display text-sm py-4 pl-1">
-                      No albums yet for this family. Be the first to add one! 🌟
+                    <p className="text-muted-foreground font-display text-sm py-6 text-center">
+                      No albums yet — be the first to add one! 🌟
                     </p>
                   ) : (
-                    <AlbumGrid albums={branchAlbums} onSelect={setSelectedAlbum} onDelete={setAlbumToDelete} />
+                    <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-thin snap-x snap-mandatory">
+                      {branchAlbums.map((album, i) => (
+                        <AlbumSnippet key={album.id} album={album} index={i} onSelect={setSelectedAlbum} onDelete={setAlbumToDelete} />
+                      ))}
+                    </div>
                   )}
-                </section>
+                </motion.section>
               );
             })}
 
             {unassigned.length > 0 && (
-              <section>
-                <div className="flex items-center gap-3 mb-4">
-                  <h2 className="font-display text-2xl font-bold">General 📂</h2>
-                  <span className="text-sm text-muted-foreground font-display">
-                    {unassigned.length} album{unassigned.length !== 1 ? "s" : ""}
+              <motion.section
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="rounded-2xl bg-gradient-to-br from-muted/60 to-muted/20 border border-border p-5"
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-2xl">📂</span>
+                  <h2 className="font-display text-xl sm:text-2xl font-bold">General</h2>
+                  <span className="bg-background/60 text-xs font-display font-semibold px-2 py-0.5 rounded-full text-muted-foreground">
+                    {unassigned.length}
                   </span>
                 </div>
-                <AlbumGrid albums={unassigned} onSelect={setSelectedAlbum} onDelete={setAlbumToDelete} />
-              </section>
+                <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-thin snap-x snap-mandatory">
+                  {unassigned.map((album, i) => (
+                    <AlbumSnippet key={album.id} album={album} index={i} onSelect={setSelectedAlbum} onDelete={setAlbumToDelete} />
+                  ))}
+                </div>
+              </motion.section>
             )}
           </div>
         )}
@@ -280,56 +328,43 @@ const Gallery = () => {
   );
 };
 
-const AlbumGrid = ({ albums, onSelect, onDelete }: { albums: Album[]; onSelect: (a: Album) => void; onDelete: (a: Album) => void }) => (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-    <AnimatePresence>
-      {albums.map((album, i) => (
-        <motion.div
-          key={album.id}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.1, type: "spring", bounce: 0.3 }}
-          whileHover={{ y: -6, scale: 1.02 }}
-          onClick={() => onSelect(album)}
-          className="bg-card rounded-2xl border-2 border-border shadow-md overflow-hidden cursor-pointer relative group"
-        >
-          {/* Delete button */}
-          <button
-            onClick={(e) => { e.stopPropagation(); onDelete(album); }}
-            className="absolute top-2 right-2 z-10 bg-background/80 hover:bg-destructive hover:text-destructive-foreground rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all shadow-sm"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
-          <div className="aspect-video bg-muted flex items-center justify-center relative overflow-hidden">
-            {album.cover_url ? (
-              <img src={album.cover_url} alt={album.title} className="w-full h-full object-cover" />
-            ) : (
-              <div className="flex flex-col items-center text-muted-foreground">
-                <FolderOpen className="h-12 w-12 mb-2" />
-                <span className="font-display text-sm">No cover yet</span>
-              </div>
-            )}
-          </div>
-          <div className="p-4">
-            <h3 className="font-display text-lg font-semibold">{album.title}</h3>
-            {album.description && (
-              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{album.description}</p>
-            )}
-            <div className="flex items-center justify-between mt-3 text-sm text-muted-foreground font-display">
-              <div className="flex items-center gap-1">
-                <Image className="h-4 w-4" />
-                <span>{album.media_count} items</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <CalendarDays className="h-3.5 w-3.5" />
-                <span className="text-xs">{format(new Date(album.created_at), "MMM d, yyyy")}</span>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      ))}
-    </AnimatePresence>
-  </div>
+const AlbumSnippet = ({ album, index, onSelect, onDelete }: { album: Album; index: number; onSelect: (a: Album) => void; onDelete: (a: Album) => void }) => (
+  <motion.div
+    initial={{ opacity: 0, x: 20 }}
+    animate={{ opacity: 1, x: 0 }}
+    transition={{ delay: index * 0.06, type: "spring", bounce: 0.25 }}
+    whileHover={{ y: -4, scale: 1.03 }}
+    onClick={() => onSelect(album)}
+    className="flex-shrink-0 w-44 sm:w-52 snap-start bg-card rounded-2xl border-2 border-border shadow-md overflow-hidden cursor-pointer relative group"
+  >
+    {/* Delete button */}
+    <button
+      onClick={(e) => { e.stopPropagation(); onDelete(album); }}
+      className="absolute top-2 right-2 z-10 bg-background/80 hover:bg-destructive hover:text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-all shadow-sm"
+    >
+      <Trash2 className="h-3.5 w-3.5" />
+    </button>
+    <div className="aspect-[4/3] bg-muted flex items-center justify-center relative overflow-hidden">
+      {album.cover_url ? (
+        <img src={album.cover_url} alt={album.title} className="w-full h-full object-cover" loading="lazy" />
+      ) : (
+        <div className="flex flex-col items-center text-muted-foreground">
+          <FolderOpen className="h-8 w-8 mb-1" />
+          <span className="font-display text-[10px]">No cover</span>
+        </div>
+      )}
+      {/* Item count badge */}
+      <span className="absolute bottom-1.5 right-1.5 bg-background/80 backdrop-blur-sm text-[10px] font-display font-semibold px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+        <Image className="h-3 w-3" /> {album.media_count}
+      </span>
+    </div>
+    <div className="p-2.5">
+      <h3 className="font-display text-sm font-semibold truncate">{album.title}</h3>
+      <p className="text-[10px] text-muted-foreground font-display mt-0.5">
+        {format(new Date(album.created_at), "MMM d, yyyy")}
+      </p>
+    </div>
+  </motion.div>
 );
 
 export default Gallery;
