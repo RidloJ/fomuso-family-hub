@@ -15,6 +15,7 @@ import { useNjangiPeriod } from "@/hooks/useNjangi";
 import { getDaysToDeadline, getDeadlineLabel, statusConfig } from "@/lib/njangi-utils";
 import OnlineFamilyWidget from "@/components/chat/OnlineFamilyWidget";
 import { useCreateDirectChat } from "@/hooks/useChat";
+import GalleryCarousel from "@/components/dashboard/GalleryCarousel";
 
 const sections = [
   {
@@ -119,7 +120,7 @@ const Dashboard = () => {
                   </span>
                 </div>
               ) : (
-                <Link to={s.to} className="block">
+              <Link to={s.to} className="block">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-12 h-12 rounded-xl bg-background/80 flex items-center justify-center">
                       <s.icon className="h-6 w-6 text-primary" />
@@ -127,7 +128,8 @@ const Dashboard = () => {
                     <h2 className="font-display text-xl font-bold">{s.emoji} {s.title}</h2>
                   </div>
                   <p className="text-muted-foreground font-display text-sm mb-4">{s.desc}</p>
-                  <Button variant="ghost" size="sm" className="rounded-full font-display p-0 text-primary hover:bg-transparent">
+                  {s.to === "/gallery" && <GalleryCarousel />}
+                  <Button variant="ghost" size="sm" className="rounded-full font-display p-0 text-primary hover:bg-transparent mt-2">
                     Explore <ArrowRight className="h-4 w-4 ml-1" />
                   </Button>
                 </Link>
