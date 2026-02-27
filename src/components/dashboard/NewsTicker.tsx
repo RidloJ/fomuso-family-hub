@@ -70,9 +70,9 @@ const NewsTicker = () => {
   const repeated = `${text}   •   ${text}`;
 
   return (
-    <div className="w-full overflow-hidden bg-primary/10 border-b border-border py-2">
+    <div className="w-full overflow-hidden bg-primary py-2.5 shadow-md">
       <motion.div
-        className="whitespace-nowrap font-display text-sm text-foreground/80 font-medium"
+        className="whitespace-nowrap font-display text-sm text-primary-foreground font-semibold tracking-wide"
         animate={{ x: ["0%", "-50%"] }}
         transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
       >
