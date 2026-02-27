@@ -13,8 +13,12 @@ const NewsTicker = () => {
   const now = new Date();
   const currentYear = now.getFullYear();
 
+  const todayKey = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+
   const { data: nextBirthday } = useQuery({
-    queryKey: ["next-birthday-ticker"],
+    queryKey: ["next-birthday-ticker", todayKey],
+    staleTime: 0,
+    refetchInterval: 60 * 1000, // re-check every minute so midnight crossover is caught quickly
     queryFn: async () => {
       const { data, error } = await supabase
         .from("family_members")
