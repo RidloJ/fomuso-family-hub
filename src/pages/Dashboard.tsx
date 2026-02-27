@@ -16,6 +16,7 @@ import { getDaysToDeadline, getDeadlineLabel, statusConfig } from "@/lib/njangi-
 import OnlineFamilyWidget from "@/components/chat/OnlineFamilyWidget";
 import { useCreateDirectChat } from "@/hooks/useChat";
 import GalleryCarousel from "@/components/dashboard/GalleryCarousel";
+import NewsTicker from "@/components/dashboard/NewsTicker";
 
 const sections = [
   {
@@ -79,6 +80,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <AppNav />
+      <NewsTicker />
       <PullToRefresh onRefresh={handleRefresh}>
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12 pb-24 md:pb-12">
         <motion.div
@@ -192,7 +194,7 @@ const BirthdaysThisMonth = ({ user }: { user: any }) => {
                   <div>
                     <p className="font-display font-semibold text-sm">{b.first_name} {b.last_name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {format(new Date(b.date_of_birth), "dd MMMM")}
+                      {(() => { const [y,m,d] = b.date_of_birth.split("-").map(Number); return format(new Date(y, m-1, d), "dd MMMM"); })()}
                     </p>
                   </div>
                 </div>
