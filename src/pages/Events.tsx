@@ -8,8 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -215,16 +213,13 @@ const Events = () => {
                 </div>
                 <div className="space-y-2">
                   <Label className="font-display">Date 📅</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className={cn("w-full rounded-xl justify-start text-left font-normal", !eventDate && "text-muted-foreground")}>
-                        {eventDate ? format(eventDate, "PPP") : "Pick a date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={eventDate} onSelect={setEventDate} initialFocus className="p-3 pointer-events-auto" />
-                    </PopoverContent>
-                  </Popover>
+                  <Input
+                    type="date"
+                    className="rounded-xl"
+                    value={eventDate ? format(eventDate, "yyyy-MM-dd") : ""}
+                    onChange={(e) => setEventDate(e.target.value ? new Date(e.target.value + "T00:00:00") : undefined)}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label className="font-display">Time ⏰</Label>
