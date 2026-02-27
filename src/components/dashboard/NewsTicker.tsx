@@ -58,11 +58,11 @@ const NewsTicker = () => {
     }
   }
 
-  if (daysToDeadline >= 0) {
-    items.push(`💰 Njangi deadline: ${deadlineLabel} — ${daysToDeadline} day${daysToDeadline !== 1 ? "s" : ""} left to contribute! Let's keep it going, family! 💪`);
-  } else {
-    items.push(`💰 Njangi deadline has passed for this month. Check your contributions! 📋`);
-  }
+  // Next month's njangi deadline
+  const nextMonth = month === 12 ? 1 : month + 1;
+  const nextYear = month === 12 ? year + 1 : year;
+  const nextDeadline = getDeadlineLabel(nextYear, nextMonth);
+  items.push(`💰 Thank you all for your February contributions! 🙏 Next Njangi date: ${nextDeadline}. Let's keep the family spirit going! 💪`);
 
   if (!items.length) return null;
 
