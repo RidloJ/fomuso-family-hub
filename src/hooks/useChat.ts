@@ -312,6 +312,34 @@ export const useEnsureGroupChat = () => {
   }, [user]);
 };
 
+export const useCreateGroupChat = () => {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useCallback(
+    async (title: string, memberIds: string[]) => {
+      if (!user) return null;
+
+      const { data: newThread, error } = await supabase
+        .from("chat_threads")
+        .insert({ type: "group", title, created_by: user.id })
+        .select()
+        .single();
+      if (error) throw error;
+
+      const members = [user.id, ...memberIds].map((id) => ({
+        thread_id: newThread.id,
+        member_id: id,
+      }));
+      await supabase.from("chat_thread_members").insert(members);
+
+      queryClient.invalidateQueries({ queryKey: ["chat-threads"] });
+      return newThread.id;
+    },
+    [user, queryClient]
+  );
+};
+
 export const useCreateDirectChat = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();

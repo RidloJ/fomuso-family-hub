@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import AppNav from "@/components/AppNav";
-import { useThreads, useMessages, useSendMessage, useEnsureGroupChat, useCreateDirectChat, useReadReceipts, getMessageReadStatus, ChatThread, ChatMessage, ReadStatus } from "@/hooks/useChat";
+import { useThreads, useMessages, useSendMessage, useEnsureGroupChat, useCreateDirectChat, useCreateGroupChat, useReadReceipts, getMessageReadStatus, ChatThread, ChatMessage, ReadStatus } from "@/hooks/useChat";
 import { useMarkThreadRead } from "@/hooks/useUnreadCount";
 import { useMessageNotifications } from "@/hooks/useNotifications";
 import { usePresence } from "@/hooks/usePresence";
@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
-import { ArrowLeft, Send, MessageCircle, Search, Plus, MoreVertical, Pencil, Trash2, X, Check, CheckCheck, Paperclip, Image, FileText, Download } from "lucide-react";
+import { ArrowLeft, Send, MessageCircle, Search, Plus, MoreVertical, Pencil, Trash2, X, Check, CheckCheck, Paperclip, Image, FileText, Download, Users } from "lucide-react";
 import { format, isToday, isYesterday } from "date-fns";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -27,12 +27,29 @@ const Chat = () => {
   const [showMobileMessages, setShowMobileMessages] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showNewChat, setShowNewChat] = useState(false);
+  const [showNewGroup, setShowNewGroup] = useState(false);
   const ensureGroupChat = useEnsureGroupChat();
   const createDirectChat = useCreateDirectChat();
+  const createGroupChat = useCreateGroupChat();
   const markThreadRead = useMarkThreadRead();
   const onlineUsers = usePresence();
   const { setActiveThread } = useMessageNotifications();
   const { data: threads = [], isLoading: threadsLoading } = useThreads();
+
+  const { data: isAdmin = false } = useQuery({
+    queryKey: ["is-admin", user?.id],
+    queryFn: async () => {
+      if (!user) return false;
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      return !!data;
+    },
+    enabled: !!user,
+  });
 
   useEffect(() => {
     if (user) ensureGroupChat();
@@ -56,6 +73,21 @@ const Chat = () => {
       }
     } catch {
       toast.error("Failed to start chat");
+    }
+  };
+
+  const handleCreateGroup = async (title: string, memberIds: string[]) => {
+    try {
+      const threadId = await createGroupChat(title, memberIds);
+      if (threadId) {
+        setSelectedThreadId(threadId);
+        setShowMobileMessages(true);
+        setShowNewGroup(false);
+        setShowNewChat(false);
+        toast.success("Group created! 🎉");
+      }
+    } catch {
+      toast.error("Failed to create group");
     }
   };
 
@@ -174,7 +206,19 @@ const Chat = () => {
             setShowNewChat(false);
             handleStartDirectChat(userId);
           }}
+          onCreateGroup={() => {
+            setShowNewChat(false);
+            setShowNewGroup(true);
+          }}
           onClose={() => setShowNewChat(false)}
+          currentUserId={user?.id || ""}
+          isAdmin={isAdmin}
+        />
+      )}
+      {showNewGroup && (
+        <CreateGroupPanel
+          onCreateGroup={handleCreateGroup}
+          onClose={() => setShowNewGroup(false)}
           currentUserId={user?.id || ""}
         />
       )}
@@ -199,8 +243,10 @@ const ThreadItem = ({
   const otherMember = thread.members?.find((m) => m.member_id !== currentUserId);
   const isOnline = thread.type === "direct" && otherMember && onlineUserIds.includes(otherMember.member_id);
   const avatarUrl = thread.type === "direct" ? otherMember?.avatar_url : null;
+  const isFamilyGroup = thread.type === "group" && thread.title === "Family Group Chat";
+  const groupEmoji = isFamilyGroup ? "👨‍👩‍👧‍👦" : "👥";
   const initials = thread.type === "group"
-    ? "👨‍👩‍👧‍👦"
+    ? groupEmoji
     : (otherMember?.full_name || "?").split(" ").map((n) => n[0]).join("").toUpperCase();
 
   const formatTime = (dateStr: string) => {
@@ -237,7 +283,7 @@ const ThreadItem = ({
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between">
           <p className={`font-display font-semibold text-sm truncate ${isOnline ? "text-foreground" : ""}`}>
-            {thread.type === "group" ? "👨‍👩‍👧‍👦 " : ""}{thread.title || "Chat"}
+            {thread.type === "group" ? `${groupEmoji} ` : ""}{thread.title || "Chat"}
           </p>
           {thread.lastMessage && (
             <span className="text-[10px] text-muted-foreground flex-shrink-0 ml-2">
@@ -434,7 +480,7 @@ const MessagePanel = ({
         })()}
         <div className="flex-1">
           <p className="font-display font-semibold text-sm">
-            {thread.type === "group" ? "👨‍👩‍👧‍👦 " : ""}{thread.title || "Chat"}
+            {thread.type === "group" ? `${thread.title === "Family Group Chat" ? "👨‍👩‍👧‍👦" : "👥"} ` : ""}{thread.title || "Chat"}
           </p>
           <p className="text-xs text-muted-foreground">
             {thread.type === "group"
@@ -671,12 +717,16 @@ const MessagePanel = ({
 // New chat panel
 const NewChatPanel = ({
   onStartChat,
+  onCreateGroup,
   onClose,
   currentUserId,
+  isAdmin,
 }: {
   onStartChat: (userId: string) => void;
+  onCreateGroup: () => void;
   onClose: () => void;
   currentUserId: string;
+  isAdmin: boolean;
 }) => {
   const onlineUsers = usePresence();
   const onlineUserIds = onlineUsers.map((u) => u.user_id);
@@ -717,7 +767,17 @@ const NewChatPanel = ({
         </Button>
         <h2 className="font-display text-lg font-bold">New Chat</h2>
       </div>
-      <div className="p-3">
+      <div className="p-3 space-y-2">
+        {isAdmin && (
+          <Button
+            variant="outline"
+            className="w-full justify-start gap-2 rounded-xl"
+            onClick={onCreateGroup}
+          >
+            <Users className="h-4 w-4 text-primary" />
+            <span className="font-display font-medium">Create New Group</span>
+          </Button>
+        )}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -764,6 +824,144 @@ const NewChatPanel = ({
           })
         )}
       </ScrollArea>
+    </motion.div>
+  );
+};
+
+// Create group panel
+const CreateGroupPanel = ({
+  onCreateGroup,
+  onClose,
+  currentUserId,
+}: {
+  onCreateGroup: (title: string, memberIds: string[]) => void;
+  onClose: () => void;
+  currentUserId: string;
+}) => {
+  const [groupName, setGroupName] = useState("");
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [search, setSearch] = useState("");
+  const [creating, setCreating] = useState(false);
+
+  const { data: profiles = [] } = useQuery({
+    queryKey: ["all-profiles-chat"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, avatar_url")
+        .eq("is_approved", true)
+        .neq("user_id", currentUserId);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const filtered = profiles.filter(
+    (p) => !search || p.full_name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const toggleMember = (userId: string) => {
+    setSelectedMembers((prev) =>
+      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+    );
+  };
+
+  const handleCreate = async () => {
+    if (!groupName.trim() || selectedMembers.length === 0) {
+      toast.error("Enter a group name and select at least one member");
+      return;
+    }
+    setCreating(true);
+    await onCreateGroup(groupName.trim(), selectedMembers);
+    setCreating(false);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 40 }}
+      className="fixed inset-0 z-50 bg-background flex flex-col"
+    >
+      <div className="flex items-center gap-3 p-4 border-b border-border">
+        <Button variant="ghost" size="sm" className="rounded-full" onClick={onClose}>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <h2 className="font-display text-lg font-bold">Create Group</h2>
+      </div>
+      <div className="p-3 space-y-3">
+        <Input
+          placeholder="Group name..."
+          value={groupName}
+          onChange={(e) => setGroupName(e.target.value)}
+          className="rounded-full"
+          autoFocus
+        />
+        {selectedMembers.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {selectedMembers.map((id) => {
+              const p = profiles.find((pr) => pr.user_id === id);
+              return (
+                <span
+                  key={id}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-display"
+                >
+                  {p?.full_name || "Unknown"}
+                  <button onClick={() => toggleMember(id)}>
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              );
+            })}
+          </div>
+        )}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search members..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9 rounded-full"
+          />
+        </div>
+      </div>
+      <ScrollArea className="flex-1">
+        {filtered.map((p) => {
+          const initials = p.full_name.split(" ").map((n: string) => n[0]).join("").toUpperCase();
+          const isSelected = selectedMembers.includes(p.user_id);
+          return (
+            <button
+              key={p.user_id}
+              onClick={() => toggleMember(p.user_id)}
+              className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors ${
+                isSelected ? "bg-primary/5" : ""
+              }`}
+            >
+              <Avatar className="h-11 w-11">
+                <AvatarImage src={p.avatar_url || ""} />
+                <AvatarFallback className="text-xs font-display">{initials}</AvatarFallback>
+              </Avatar>
+              <span className="font-display text-sm font-medium flex-1 text-left">{p.full_name}</span>
+              <div
+                className={`h-5 w-5 rounded-full border-2 flex items-center justify-center ${
+                  isSelected ? "bg-primary border-primary" : "border-muted-foreground/30"
+                }`}
+              >
+                {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
+              </div>
+            </button>
+          );
+        })}
+      </ScrollArea>
+      <div className="p-3 border-t border-border">
+        <Button
+          className="w-full rounded-full"
+          disabled={!groupName.trim() || selectedMembers.length === 0 || creating}
+          onClick={handleCreate}
+        >
+          {creating ? "Creating..." : `Create Group (${selectedMembers.length} members)`}
+        </Button>
+      </div>
     </motion.div>
   );
 };
