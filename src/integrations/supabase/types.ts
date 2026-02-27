@@ -549,6 +549,7 @@ export type Database = {
         | "children"
         | "grandchildren"
         | "wife"
+        | "husband"
       njangi_payment_method: "cash" | "interac" | "bank_transfer" | "other"
       njangi_status: "not_started" | "partial" | "completed" | "overpaid"
     }
@@ -685,6 +686,7 @@ export const Constants = {
         "children",
         "grandchildren",
         "wife",
+        "husband",
       ],
       njangi_payment_method: ["cash", "interac", "bank_transfer", "other"],
       njangi_status: ["not_started", "partial", "completed", "overpaid"],

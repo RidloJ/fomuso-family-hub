@@ -21,11 +21,12 @@ const MEMBER_TYPES = [
   { value: "children", label: "Child 👨‍👩‍👧" },
   { value: "grandchildren", label: "Grand Child 👶" },
   { value: "wife", label: "Wife 👰" },
+  { value: "husband", label: "Husband 🤵" },
 ] as const;
 
-type MemberType = "grandpa" | "grandma" | "children" | "grandchildren" | "wife";
+type MemberType = "grandpa" | "grandma" | "children" | "grandchildren" | "wife" | "husband";
 
-const PARENT_DISABLED_TYPES: MemberType[] = ["grandpa", "grandma", "wife"];
+const PARENT_DISABLED_TYPES: MemberType[] = ["grandpa", "grandma", "wife", "husband"];
 
 const FamilyMembers = () => {
   const { user, loading: authLoading } = useAuth();

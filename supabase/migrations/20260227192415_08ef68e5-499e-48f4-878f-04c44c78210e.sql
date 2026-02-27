@@ -1,0 +1,1 @@
+ALTER TYPE public.family_member_type ADD VALUE IF NOT EXISTS 'husband';
