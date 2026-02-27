@@ -27,6 +27,7 @@ interface Album {
   created_at: string;
   family_branch: string | null;
   media_count?: number;
+  preview_urls?: string[];
 }
 
 const Gallery = () => {
@@ -55,7 +56,13 @@ const Gallery = () => {
             .from("media")
             .select("*", { count: "exact", head: true })
             .eq("album_id", album.id);
-          return { ...album, media_count: count ?? 0 };
+          const { data: previews } = await supabase
+            .from("media")
+            .select("url")
+            .eq("album_id", album.id)
+            .order("created_at", { ascending: false })
+            .limit(4);
+          return { ...album, media_count: count ?? 0, preview_urls: (previews ?? []).map(p => p.url) };
         })
       );
       return albumsWithCounts;
@@ -344,16 +351,27 @@ const AlbumSnippet = ({ album, index, onSelect, onDelete }: { album: Album; inde
     >
       <Trash2 className="h-3.5 w-3.5" />
     </button>
-    <div className="aspect-[4/3] bg-muted flex items-center justify-center relative overflow-hidden">
-      {album.cover_url ? (
-        <img src={album.cover_url} alt={album.title} className="w-full h-full object-cover" loading="lazy" />
+    <div className="aspect-[4/3] bg-muted relative overflow-hidden">
+      {(album.preview_urls?.length ?? 0) >= 2 ? (
+        <div className="w-full h-full grid grid-cols-2 grid-rows-2 gap-px bg-border">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="bg-muted overflow-hidden">
+              {album.preview_urls?.[i] ? (
+                <img src={album.preview_urls[i]} alt="" className="w-full h-full object-cover" loading="lazy" />
+              ) : (
+                <div className="w-full h-full bg-muted/80" />
+              )}
+            </div>
+          ))}
+        </div>
+      ) : album.cover_url || (album.preview_urls?.length === 1) ? (
+        <img src={album.preview_urls?.[0] || album.cover_url!} alt={album.title} className="w-full h-full object-cover" loading="lazy" />
       ) : (
-        <div className="flex flex-col items-center text-muted-foreground">
+        <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground">
           <FolderOpen className="h-8 w-8 mb-1" />
-          <span className="font-display text-[10px]">No cover</span>
+          <span className="font-display text-[10px]">No photos</span>
         </div>
       )}
-      {/* Item count badge */}
       <span className="absolute bottom-1.5 right-1.5 bg-background/80 backdrop-blur-sm text-[10px] font-display font-semibold px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
         <Image className="h-3 w-3" /> {album.media_count}
       </span>
