@@ -138,7 +138,7 @@ Deno.serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: "Fomuso Family Hub <onboarding@resend.dev>",
+          from: "Fomuso Family Hub <admin@fomuso.com>",
           to: emails,
           subject,
           html: htmlBody,
