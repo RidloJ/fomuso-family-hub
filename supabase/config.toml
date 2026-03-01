@@ -7,3 +7,5 @@ project_id = "yexwaudgflncjpyfflll"
     verify_jwt = false
   [functions.send-birthday-emails]
     verify_jwt = false
+  [functions.create-njangi-period]
+    verify_jwt = false
