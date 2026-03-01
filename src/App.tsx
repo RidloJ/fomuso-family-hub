@@ -17,6 +17,7 @@ import Settings from "./pages/Settings";
 import Chat from "./pages/Chat";
 import Admin from "./pages/Admin";
 import Onboarding from "./pages/Onboarding";
+import PendingApproval from "./pages/PendingApproval";
 import NotFound from "./pages/NotFound";
 import InstallPrompt from "./components/InstallPrompt";
 
@@ -44,6 +45,7 @@ const App = () => (
           <Route path="/chat" element={<Chat />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/pending-approval" element={<PendingApproval />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

@@ -5,21 +5,26 @@ import type { User } from "@supabase/supabase-js";
 
 const PUBLIC_ROUTES = ["/", "/login", "/signup", "/forgot-password", "/reset-password"];
 const ONBOARDING_ROUTE = "/onboarding";
+const PENDING_ROUTE = "/pending-approval";
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [registrationComplete, setRegistrationComplete] = useState<boolean | null>(null);
+  const [isApproved, setIsApproved] = useState<boolean | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
-  const checkRegistration = async (userId: string) => {
+  const checkProfile = async (userId: string) => {
     const { data } = await supabase
       .from("profiles")
-      .select("registration_complete")
+      .select("registration_complete, is_approved")
       .eq("user_id", userId)
       .single();
-    return (data as any)?.registration_complete ?? false;
+    return {
+      registrationComplete: (data as any)?.registration_complete ?? false,
+      isApproved: (data as any)?.is_approved ?? false,
+    };
   };
 
   const handleAuthState = async (currentUser: User | null) => {
@@ -27,6 +32,7 @@ export const useAuth = () => {
 
     if (!currentUser) {
       setRegistrationComplete(null);
+      setIsApproved(null);
       setLoading(false);
       if (!PUBLIC_ROUTES.includes(location.pathname)) {
         navigate("/login");
@@ -34,12 +40,16 @@ export const useAuth = () => {
       return;
     }
 
-    // Check registration status
-    const complete = await checkRegistration(currentUser.id);
+    const { registrationComplete: complete, isApproved: approved } = await checkProfile(currentUser.id);
     setRegistrationComplete(complete);
+    setIsApproved(approved);
     setLoading(false);
 
-    if (!complete && location.pathname !== ONBOARDING_ROUTE && !PUBLIC_ROUTES.includes(location.pathname)) {
+    const isGatedRoute = !PUBLIC_ROUTES.includes(location.pathname) && location.pathname !== ONBOARDING_ROUTE && location.pathname !== PENDING_ROUTE;
+
+    if (!approved && isGatedRoute) {
+      navigate(PENDING_ROUTE);
+    } else if (approved && !complete && location.pathname !== ONBOARDING_ROUTE && !PUBLIC_ROUTES.includes(location.pathname) && location.pathname !== PENDING_ROUTE) {
       navigate(ONBOARDING_ROUTE);
     }
   };
@@ -55,12 +65,16 @@ export const useAuth = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Re-check when route changes (e.g. after onboarding)
+  // Re-check when route changes
   useEffect(() => {
-    if (user && registrationComplete === false && location.pathname !== ONBOARDING_ROUTE && !PUBLIC_ROUTES.includes(location.pathname)) {
+    if (!user) return;
+    const isGatedRoute = !PUBLIC_ROUTES.includes(location.pathname) && location.pathname !== ONBOARDING_ROUTE && location.pathname !== PENDING_ROUTE;
+    if (isApproved === false && isGatedRoute) {
+      navigate(PENDING_ROUTE);
+    } else if (isApproved && registrationComplete === false && location.pathname !== ONBOARDING_ROUTE && !PUBLIC_ROUTES.includes(location.pathname) && location.pathname !== PENDING_ROUTE) {
       navigate(ONBOARDING_ROUTE);
     }
-  }, [location.pathname, user, registrationComplete, navigate]);
+  }, [location.pathname, user, registrationComplete, isApproved, navigate]);
 
-  return { user, loading, registrationComplete };
+  return { user, loading, registrationComplete, isApproved };
 };
