@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Users, Calendar, Pencil, ChevronDown, ChevronUp } from "lucide-react";
+import { UserPlus, Users, Calendar, Pencil, ChevronDown, ChevronUp, User, Baby, Heart } from "lucide-react";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -73,6 +73,27 @@ const TREE_CATEGORIES = [
     titleSize: "text-base sm:text-lg",
   },
 ];
+
+const MEMBER_TYPE_ICONS: Record<string, string> = {
+  grandpa: "👴",
+  grandma: "👵",
+  children: "👨",
+  wife: "👩",
+  husband: "👨",
+  grandchildren: "👶",
+};
+
+const MemberAvatar = ({ member, cat }: { member: any; cat: typeof TREE_CATEGORIES[number] }) => {
+  // If member had a profile photo, we'd use it here
+  // For now use type-based emoji icons with colored background
+  const emoji = MEMBER_TYPE_ICONS[member.member_type] || "👤";
+
+  return (
+    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full ${cat.iconBg} flex items-center justify-center shrink-0 border-2 ${cat.border} shadow-sm`}>
+      <span className="text-lg sm:text-xl">{emoji}</span>
+    </div>
+  );
+};
 
 const FamilyMembers = () => {
   const { user, loading: authLoading } = useAuth();
@@ -324,11 +345,11 @@ const FamilyMembers = () => {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-8">
-              {/* Tree connector line */}
-              <div className="relative">
-                <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-fun-purple/30 via-primary/30 to-fun-teal/30 hidden sm:block" />
+            <div className="relative">
+              {/* Vertical tree connector */}
+              <div className="absolute left-6 sm:left-8 top-0 bottom-0 w-1 rounded-full bg-gradient-to-b from-amber-400/50 via-fun-blue/50 to-fun-teal/50 z-0" />
 
+              <div className="relative z-10 space-y-0">
                 {TREE_CATEGORIES.map((cat, catIdx) => {
                   const catMembers = getMembersForCategory(cat.types);
                   const isExpanded = expandedCategories.includes(cat.id);
@@ -340,8 +361,27 @@ const FamilyMembers = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: catIdx * 0.15 }}
                       className="relative"
-                      style={{ marginLeft: `${catIdx * 24}px` }}
                     >
+                      {/* Horizontal branch connector */}
+                      {catIdx > 0 && (
+                        <div
+                          className="absolute top-1/2 -translate-y-1/2 h-1 rounded-full z-0"
+                          style={{
+                            left: `${24}px`,
+                            width: `${catIdx * 24}px`,
+                            background: `linear-gradient(to right, ${catIdx === 1 ? 'hsl(var(--fun-blue) / 0.4)' : 'hsl(var(--fun-teal) / 0.4)'}, transparent)`,
+                          }}
+                        />
+                      )}
+                      {/* Arrow dot at branch start */}
+                      {catIdx > 0 && (
+                        <div
+                          className={`absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full z-10 ${catIdx === 1 ? 'bg-fun-blue/60' : 'bg-fun-teal/60'}`}
+                          style={{ left: `${20}px` }}
+                        />
+                      )}
+
+                      <div style={{ marginLeft: `${catIdx * 24 + 16}px` }}>
                       {/* Category button */}
                       <button
                         onClick={() => toggleCategory(cat.id)}
@@ -388,10 +428,8 @@ const FamilyMembers = () => {
                                   >
                                     <Card className={`rounded-xl border ${cat.border} bg-card hover:shadow-md transition-shadow`}>
                                       <CardContent className="p-3 sm:p-4 flex items-center gap-3">
-                                        {/* Avatar placeholder */}
-                                        <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full ${cat.iconBg} flex items-center justify-center text-lg font-display font-bold ${cat.textColor} shrink-0`}>
-                                          {member.first_name.charAt(0)}
-                                        </div>
+                                        {/* Avatar with type-based icon fallback */}
+                                        <MemberAvatar member={member} cat={cat} />
                                         <div className="flex-1 min-w-0">
                                           <p className="font-display font-semibold text-foreground truncate">
                                             {member.first_name} {member.last_name}
@@ -436,6 +474,7 @@ const FamilyMembers = () => {
                           </motion.div>
                         )}
                       </AnimatePresence>
+                      </div>
                     </motion.div>
                   );
                 })}
