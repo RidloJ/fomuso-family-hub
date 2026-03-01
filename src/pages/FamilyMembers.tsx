@@ -393,7 +393,7 @@ const FamilyMembers = () => {
               {/* Vertical tree connector */}
               <div className="absolute left-6 sm:left-8 top-0 bottom-0 w-1 rounded-full bg-gradient-to-b from-amber-400/50 via-fun-blue/50 to-fun-teal/50 z-0" />
 
-              <div className="relative z-10 space-y-0">
+              <div className="relative z-10 space-y-6">
                 {TREE_CATEGORIES.map((cat, catIdx) => {
                   const catMembers = getMembersForCategory(cat.types);
                   const isExpanded = expandedCategories.includes(cat.id);
