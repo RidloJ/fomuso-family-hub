@@ -431,9 +431,36 @@ const FamilyMembers = () => {
                         onClick={() => toggleCategory(cat.id)}
                         className={`w-full relative z-10 bg-gradient-to-r ${cat.gradient} border-2 ${cat.border} rounded-2xl ${cat.size} flex items-center gap-4 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 text-left group`}
                       >
-                        <div className={`${cat.emojiSize} shrink-0 transition-transform duration-300 ${isExpanded ? "scale-110" : "group-hover:scale-110"}`}>
-                          {cat.emoji}
-                        </div>
+                        {(() => {
+                          const avatars = catMembers
+                            .map((m: any) => getAvatarForMember(m))
+                            .filter(Boolean) as string[];
+                          if (avatars.length > 0) {
+                            return (
+                              <div className="flex -space-x-2 shrink-0">
+                                {avatars.slice(0, 4).map((url, i) => (
+                                  <img
+                                    key={i}
+                                    src={url}
+                                    alt=""
+                                    className={`w-9 h-9 sm:w-11 sm:h-11 rounded-full object-cover border-2 ${cat.border} shadow-sm`}
+                                    style={{ zIndex: avatars.length - i }}
+                                  />
+                                ))}
+                                {avatars.length > 4 && (
+                                  <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-full ${cat.iconBg} border-2 ${cat.border} flex items-center justify-center text-xs font-bold ${cat.textColor}`}>
+                                    +{avatars.length - 4}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          }
+                          return (
+                            <div className={`${cat.emojiSize} shrink-0 transition-transform duration-300 ${isExpanded ? "scale-110" : "group-hover:scale-110"}`}>
+                              {cat.emoji}
+                            </div>
+                          );
+                        })()}
                         <div className="flex-1 min-w-0">
                           <h2 className={`font-display ${cat.titleSize} font-bold ${cat.textColor}`}>
                             {cat.label}
