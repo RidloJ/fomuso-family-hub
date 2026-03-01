@@ -148,13 +148,28 @@ const FamilyMembers = () => {
     enabled: !!user,
   });
 
+  // Alias map: profile display name → family member first name
+  const NAME_ALIASES: Record<string, string> = {
+    "ridley": "nkom",
+    "d. manyi": "nadia",
+  };
+
   // Match a family member to a profile avatar by name
   const getAvatarForMember = (member: any): string | null => {
     const memberFullName = `${member.first_name} ${member.last_name}`.toLowerCase();
     const memberFirst = member.first_name.toLowerCase();
     const match = profiles.find((p: any) => {
       const profileName = (p.full_name || "").toLowerCase();
-      return profileName === memberFullName || profileName.includes(memberFirst);
+      // Direct match
+      if (profileName === memberFullName || profileName.includes(memberFirst)) return true;
+      // Alias match: check if profile name maps to this member's first name
+      const alias = NAME_ALIASES[profileName];
+      if (alias && alias === memberFirst) return true;
+      // Check partial alias matches
+      for (const [key, val] of Object.entries(NAME_ALIASES)) {
+        if (profileName.includes(key) && val === memberFirst) return true;
+      }
+      return false;
     });
     return match?.avatar_url || null;
   };
