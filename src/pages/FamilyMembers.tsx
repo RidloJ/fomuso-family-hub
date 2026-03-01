@@ -25,7 +25,8 @@ const MEMBER_TYPES = [
 
 type MemberType = "grandpa" | "grandma" | "children" | "grandchildren" | "wife" | "husband";
 
-const PARENT_DISABLED_TYPES: MemberType[] = ["grandpa", "grandma", "wife", "husband"];
+const PARENT_DISABLED_TYPES: MemberType[] = ["grandpa", "grandma"];
+const SPOUSE_TYPES: MemberType[] = ["wife", "husband"];
 
 // Tree categories with their types, colors, and emojis
 const TREE_CATEGORIES = [
@@ -79,6 +80,7 @@ const FamilyMembers = () => {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
 
   const parentDisabled = PARENT_DISABLED_TYPES.includes(memberType);
+  const isSpouseType = SPOUSE_TYPES.includes(memberType);
   const isEditing = !!editingId;
 
   const { data: members = [], isLoading } = useQuery({
@@ -101,7 +103,7 @@ const FamilyMembers = () => {
         last_name: lastName.trim(),
         date_of_birth: dob,
         father: parentDisabled ? null : (father.trim() || null),
-        mother: parentDisabled ? null : (mother.trim() || null),
+        mother: (parentDisabled || isSpouseType) ? null : (mother.trim() || null),
         member_type: memberType,
         created_by: user!.id,
       } as any);
@@ -128,7 +130,7 @@ const FamilyMembers = () => {
           last_name: lastName.trim(),
           date_of_birth: dob,
           father: parentDisabled ? null : (father.trim() || null),
-          mother: parentDisabled ? null : (mother.trim() || null),
+          mother: (parentDisabled || isSpouseType) ? null : (mother.trim() || null),
           member_type: memberType,
         } as any)
         .eq("id", editingId);
@@ -265,16 +267,30 @@ const FamilyMembers = () => {
                     <Label className="font-display">Date of Birth *</Label>
                     <Input type="date" value={dob} onChange={(e) => setDob(e.target.value)} required className="rounded-xl" />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className={`font-display ${parentDisabled ? "text-muted-foreground" : ""}`}>Father</Label>
-                      <Input value={father} onChange={(e) => setFather(e.target.value)} placeholder="Father's name" className="rounded-xl" disabled={parentDisabled} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className={`font-display ${parentDisabled ? "text-muted-foreground" : ""}`}>Mother</Label>
-                      <Input value={mother} onChange={(e) => setMother(e.target.value)} placeholder="Mother's name" className="rounded-xl" disabled={parentDisabled} />
-                    </div>
-                  </div>
+                    {isSpouseType ? (
+                      <div className="space-y-2">
+                        <Label className="font-display">
+                          {memberType === "wife" ? "Husband's Name 🤵" : "Wife's Name 👰"}
+                        </Label>
+                        <Input
+                          value={father}
+                          onChange={(e) => setFather(e.target.value)}
+                          placeholder={memberType === "wife" ? "Husband's name" : "Wife's name"}
+                          className="rounded-xl"
+                        />
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className={`font-display ${parentDisabled ? "text-muted-foreground" : ""}`}>Father</Label>
+                          <Input value={father} onChange={(e) => setFather(e.target.value)} placeholder="Father's name" className="rounded-xl" disabled={parentDisabled} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className={`font-display ${parentDisabled ? "text-muted-foreground" : ""}`}>Mother</Label>
+                          <Input value={mother} onChange={(e) => setMother(e.target.value)} placeholder="Mother's name" className="rounded-xl" disabled={parentDisabled} />
+                        </div>
+                      </div>
+                    )}
                   <Button type="submit" className="w-full rounded-full font-display" disabled={isPending}>
                     {isPending
                       ? (isEditing ? "Updating... ⏳" : "Registering... ⏳")
@@ -379,9 +395,12 @@ const FamilyMembers = () => {
                                               {MEMBER_TYPES.find((t) => t.value === member.member_type)?.label || member.member_type}
                                             </span>
                                             {member.father && (
-                                              <span>👨 {member.father}</span>
+                                              <span>
+                                                {member.member_type === "wife" ? "🤵" : member.member_type === "husband" ? "👰" : "👨"}{" "}
+                                                {member.father}
+                                              </span>
                                             )}
-                                            {member.mother && (
+                                            {member.mother && !SPOUSE_TYPES.includes(member.member_type) && (
                                               <span>👩 {member.mother}</span>
                                             )}
                                           </div>
