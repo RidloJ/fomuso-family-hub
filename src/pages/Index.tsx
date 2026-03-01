@@ -1,18 +1,18 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Heart, Camera, Calendar, TrendingUp, Users, ArrowRight, Shield, Lock } from "lucide-react";
+import { Heart, Camera, Calendar, TrendingUp, Users, Shield, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const features = [
-  { icon: Camera, title: "📸 Family Gallery", desc: "Share photos & videos organized by each family branch." },
-  { icon: Calendar, title: "🎉 Events & Meetings", desc: "Plan gatherings, RSVP, and never miss a celebration." },
-  { icon: TrendingUp, title: "🚀 Family Projects", desc: "Track contributions and progress toward shared goals." },
-  { icon: Users, title: "💬 Stay Connected", desc: "Post updates and announcements for the whole family." },
+  { icon: Camera, title: "📸 Family Gallery", desc: "Share photos & videos organized by each family branch.", color: "bg-fun-pink/15 text-fun-pink" },
+  { icon: Calendar, title: "🎉 Events & Meetings", desc: "Plan gatherings, RSVP, and never miss a celebration.", color: "bg-fun-blue/15 text-fun-blue" },
+  { icon: TrendingUp, title: "🚀 Family Projects", desc: "Track contributions and progress toward shared goals.", color: "bg-fun-teal/15 text-fun-teal" },
+  { icon: Users, title: "💬 Stay Connected", desc: "Post updates and announcements for the whole family.", color: "bg-fun-purple/15 text-fun-purple" },
 ];
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-hidden">
       {/* ─── Nav ─── */}
       <nav className="flex items-center justify-between px-8 py-6 max-w-7xl mx-auto">
         <div className="flex items-center gap-2">
@@ -32,12 +32,17 @@ const Index = () => {
       </nav>
 
       {/* ─── Hero ─── */}
-      <section className="text-center px-6 pt-24 pb-16 max-w-3xl mx-auto flex flex-col items-center">
+      <section className="relative text-center px-6 pt-20 pb-16 max-w-3xl mx-auto flex flex-col items-center">
+        {/* Decorative blobs */}
+        <div className="absolute -top-10 -left-20 w-72 h-72 rounded-full bg-fun-pink/20 blur-3xl pointer-events-none" />
+        <div className="absolute top-20 -right-16 w-64 h-64 rounded-full bg-fun-blue/20 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/4 w-56 h-56 rounded-full bg-fun-yellow/20 blur-3xl pointer-events-none" />
+
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="flex flex-col items-center"
+          className="flex flex-col items-center relative z-10"
         >
           <motion.div
             className="text-7xl md:text-8xl mb-6"
@@ -48,7 +53,7 @@ const Index = () => {
           </motion.div>
           <h1 className="font-display text-5xl md:text-7xl font-bold text-foreground leading-[1.1] tracking-tight mb-4">
             The Fomuso Family<br />
-            <span className="text-primary">Hub</span>
+            <span className="bg-gradient-to-r from-primary via-fun-purple to-fun-blue bg-clip-text text-transparent">Hub</span>
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-md mx-auto mb-10 font-body leading-relaxed">
             Our private corner of the internet — where we share memories, plan adventures, and stay close no matter the distance 💕
@@ -58,7 +63,7 @@ const Index = () => {
               <Button
                 asChild
                 size="lg"
-                className="rounded-full px-10 py-6 text-lg font-display font-bold shadow-2xl"
+                className="rounded-full px-10 py-6 text-lg font-display font-bold shadow-2xl bg-gradient-to-r from-primary to-fun-purple hover:opacity-90 transition-opacity"
               >
                 <Link to="/signup">Join the Family 🎉</Link>
               </Button>
@@ -68,7 +73,7 @@ const Index = () => {
                 asChild
                 size="lg"
                 variant="outline"
-                className="rounded-full px-10 py-6 text-lg font-display font-bold"
+                className="rounded-full px-10 py-6 text-lg font-display font-bold border-2 border-fun-blue text-fun-blue hover:bg-fun-blue/10"
               >
                 <Link to="/login">Sign In ✨</Link>
               </Button>
@@ -83,10 +88,10 @@ const Index = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="flex items-center gap-4 bg-card rounded-2xl border-2 border-border p-5 shadow-sm"
+          className="flex items-center gap-4 bg-gradient-to-r from-fun-teal/10 to-fun-blue/10 rounded-2xl border-2 border-fun-teal/30 p-5 shadow-sm"
         >
-          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-            <Lock className="h-6 w-6 text-primary" />
+          <div className="w-12 h-12 rounded-xl bg-fun-teal/20 flex items-center justify-center shrink-0">
+            <Lock className="h-6 w-6 text-fun-teal" />
           </div>
           <div>
             <h3 className="font-display font-semibold text-foreground">Private & Secure 🔒</h3>
@@ -98,8 +103,9 @@ const Index = () => {
       </section>
 
       {/* ─── About ─── */}
-      <section id="about" className="bg-card/50 py-20">
-        <div className="max-w-4xl mx-auto px-8 text-center">
+      <section id="about" className="relative py-20 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-fun-pink/8 via-fun-purple/8 to-fun-blue/8" />
+        <div className="max-w-4xl mx-auto px-8 text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -114,13 +120,13 @@ const Index = () => {
               Whether it's a big birthday bash 🎂 or a quiet Sunday afternoon ☀️,
               this is where we keep our memories alive forever.
             </p>
-            <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground font-display">
-              <div className="flex items-center gap-2">
-                <Shield className="h-4 w-4 text-primary" />
+            <div className="flex items-center justify-center gap-6 text-sm font-display">
+              <div className="flex items-center gap-2 bg-fun-purple/15 text-fun-purple px-4 py-2 rounded-full font-semibold">
+                <Shield className="h-4 w-4" />
                 <span>Members Only</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Heart className="h-4 w-4 text-primary fill-primary" />
+              <div className="flex items-center gap-2 bg-primary/15 text-primary px-4 py-2 rounded-full font-semibold">
+                <Heart className="h-4 w-4 fill-current" />
                 <span>5 Family Branches</span>
               </div>
             </div>
@@ -146,11 +152,11 @@ const Index = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1, type: "spring", bounce: 0.3 }}
-              whileHover={{ y: -6 }}
-              className="bg-card rounded-2xl p-6 border-2 border-border shadow-sm text-center"
+              whileHover={{ y: -6, scale: 1.02 }}
+              className="bg-card rounded-2xl p-6 border-2 border-border hover:border-primary/30 shadow-sm hover:shadow-lg transition-all text-center"
             >
-              <div className="w-14 h-14 rounded-2xl bg-accent flex items-center justify-center mx-auto mb-4">
-                <f.icon className="h-7 w-7 text-primary" />
+              <div className={`w-14 h-14 rounded-2xl ${f.color.split(' ')[0]} flex items-center justify-center mx-auto mb-4`}>
+                <f.icon className={`h-7 w-7 ${f.color.split(' ')[1]}`} />
               </div>
               <h3 className="font-display text-lg font-semibold mb-2 text-foreground">{f.title}</h3>
               <p className="text-sm text-muted-foreground">{f.desc}</p>
@@ -160,8 +166,9 @@ const Index = () => {
       </section>
 
       {/* ─── Quote ─── */}
-      <section className="bg-card/50 py-20">
-        <div className="max-w-3xl mx-auto px-8 text-center">
+      <section className="relative py-20 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-fun-yellow/10 via-warm-orange/10 to-primary/10" />
+        <div className="max-w-3xl mx-auto px-8 text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -177,7 +184,7 @@ const Index = () => {
       </section>
 
       {/* ─── Footer ─── */}
-      <footer className="border-t border-border py-10 text-center">
+      <footer className="border-t border-border py-10 text-center bg-gradient-to-r from-fun-teal/5 via-fun-blue/5 to-fun-purple/5">
         <div className="max-w-6xl mx-auto px-8">
           <div className="flex items-center justify-center gap-2 mb-4">
             <Heart className="h-5 w-5 text-primary fill-primary" />

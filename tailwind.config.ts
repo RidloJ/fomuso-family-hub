@@ -69,6 +69,9 @@ export default {
         fun: {
           purple: "hsl(var(--fun-purple))",
           blue: "hsl(var(--fun-blue))",
+          pink: "hsl(var(--fun-pink))",
+          yellow: "hsl(var(--fun-yellow))",
+          teal: "hsl(var(--fun-teal))",
         },
       },
       borderRadius: {
