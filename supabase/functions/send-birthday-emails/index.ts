@@ -24,8 +24,14 @@ Deno.serve(async (req) => {
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   try {
-    // Get today's date parts
-    const now = new Date();
+    // Allow date override via request body
+    let overrideDate: string | null = null;
+    try {
+      const body = await req.json();
+      overrideDate = body?.date || null;
+    } catch { /* no body */ }
+
+    const now = overrideDate ? new Date(overrideDate + "T12:00:00Z") : new Date();
     const todayMonth = now.getMonth() + 1;
     const todayDay = now.getDate();
 
