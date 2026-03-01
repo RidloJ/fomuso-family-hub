@@ -83,10 +83,18 @@ const MEMBER_TYPE_ICONS: Record<string, string> = {
   grandchildren: "👶",
 };
 
-const MemberAvatar = ({ member, cat }: { member: any; cat: typeof TREE_CATEGORIES[number] }) => {
-  // If member had a profile photo, we'd use it here
-  // For now use type-based emoji icons with colored background
+const MemberAvatar = ({ member, cat, avatarUrl }: { member: any; cat: typeof TREE_CATEGORIES[number]; avatarUrl?: string | null }) => {
   const emoji = MEMBER_TYPE_ICONS[member.member_type] || "👤";
+
+  if (avatarUrl) {
+    return (
+      <img
+        src={avatarUrl}
+        alt={`${member.first_name} ${member.last_name}`}
+        className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover shrink-0 border-2 ${cat.border} shadow-sm`}
+      />
+    );
+  }
 
   return (
     <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full ${cat.iconBg} flex items-center justify-center shrink-0 border-2 ${cat.border} shadow-sm`}>
@@ -125,6 +133,31 @@ const FamilyMembers = () => {
     },
     enabled: !!user,
   });
+
+  // Fetch profiles with avatars for matching
+  const { data: profiles = [] } = useQuery({
+    queryKey: ["profiles-avatars"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("full_name, avatar_url")
+        .not("avatar_url", "is", null);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  // Match a family member to a profile avatar by name
+  const getAvatarForMember = (member: any): string | null => {
+    const memberFullName = `${member.first_name} ${member.last_name}`.toLowerCase();
+    const memberFirst = member.first_name.toLowerCase();
+    const match = profiles.find((p: any) => {
+      const profileName = (p.full_name || "").toLowerCase();
+      return profileName === memberFullName || profileName.includes(memberFirst);
+    });
+    return match?.avatar_url || null;
+  };
 
   const addMember = useMutation({
     mutationFn: async () => {
@@ -429,7 +462,7 @@ const FamilyMembers = () => {
                                     <Card className={`rounded-xl border ${cat.border} bg-card hover:shadow-md transition-shadow`}>
                                       <CardContent className="p-3 sm:p-4 flex items-center gap-3">
                                         {/* Avatar with type-based icon fallback */}
-                                        <MemberAvatar member={member} cat={cat} />
+                                        <MemberAvatar member={member} cat={cat} avatarUrl={getAvatarForMember(member)} />
                                         <div className="flex-1 min-w-0">
                                           <p className="font-display font-semibold text-foreground truncate">
                                             {member.first_name} {member.last_name}
