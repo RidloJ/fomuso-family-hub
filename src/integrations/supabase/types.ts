@@ -479,6 +479,7 @@ export type Database = {
           id: string
           is_approved: boolean
           last_seen_at: string | null
+          registration_complete: boolean
           updated_at: string
           user_id: string
         }
@@ -490,6 +491,7 @@ export type Database = {
           id?: string
           is_approved?: boolean
           last_seen_at?: string | null
+          registration_complete?: boolean
           updated_at?: string
           user_id: string
         }
@@ -501,6 +503,7 @@ export type Database = {
           id?: string
           is_approved?: boolean
           last_seen_at?: string | null
+          registration_complete?: boolean
           updated_at?: string
           user_id?: string
         }
