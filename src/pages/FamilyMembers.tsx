@@ -148,9 +148,9 @@ const FamilyMembers = () => {
     enabled: !!user,
   });
 
-  // Alias map: profile display name → family member first name
-  const NAME_ALIASES: Record<string, string> = {
-    "ridley": "nkom",
+  // Alias map: profile display name → family member first name (lowercase)
+  const PROFILE_TO_MEMBER: Record<string, string> = {
+    "nkom": "ridley fongwen",
     "d. manyi": "nadia",
   };
 
@@ -159,16 +159,12 @@ const FamilyMembers = () => {
     const memberFullName = `${member.first_name} ${member.last_name}`.toLowerCase();
     const memberFirst = member.first_name.toLowerCase();
     const match = profiles.find((p: any) => {
-      const profileName = (p.full_name || "").toLowerCase();
+      const profileName = (p.full_name || "").toLowerCase().trim();
       // Direct match
-      if (profileName === memberFullName || profileName.includes(memberFirst)) return true;
-      // Alias match: check if profile name maps to this member's first name
-      const alias = NAME_ALIASES[profileName];
-      if (alias && alias === memberFirst) return true;
-      // Check partial alias matches
-      for (const [key, val] of Object.entries(NAME_ALIASES)) {
-        if (profileName.includes(key) && val === memberFirst) return true;
-      }
+      if (profileName === memberFullName || memberFirst.includes(profileName) || profileName.includes(memberFirst)) return true;
+      // Alias match: profile name maps to a family member first name
+      const alias = PROFILE_TO_MEMBER[profileName];
+      if (alias && (alias === memberFirst || memberFirst.includes(alias) || alias.includes(memberFirst))) return true;
       return false;
     });
     return match?.avatar_url || null;
