@@ -36,10 +36,13 @@ const TREE_CATEGORIES = [
     emoji: "👴👵",
     description: "The roots of our family tree",
     types: ["grandpa", "grandma"] as MemberType[],
-    gradient: "from-fun-purple/20 to-fun-blue/20",
-    border: "border-fun-purple/40",
-    iconBg: "bg-fun-purple/20",
-    textColor: "text-fun-purple",
+    gradient: "from-amber-500/20 to-amber-300/10",
+    border: "border-amber-400/50",
+    iconBg: "bg-amber-500/20",
+    textColor: "text-amber-600",
+    size: "p-5 sm:p-6",
+    emojiSize: "text-5xl sm:text-6xl",
+    titleSize: "text-xl sm:text-2xl",
   },
   {
     id: "children",
@@ -47,10 +50,13 @@ const TREE_CATEGORIES = [
     emoji: "👨‍👩‍👧‍👦",
     description: "The strong branches of our family",
     types: ["children", "wife", "husband"] as MemberType[],
-    gradient: "from-primary/15 to-fun-pink/15",
-    border: "border-primary/40",
-    iconBg: "bg-primary/20",
-    textColor: "text-primary",
+    gradient: "from-fun-blue/20 to-fun-purple/15",
+    border: "border-fun-blue/40",
+    iconBg: "bg-fun-blue/20",
+    textColor: "text-fun-blue",
+    size: "p-4 sm:p-5",
+    emojiSize: "text-4xl sm:text-5xl",
+    titleSize: "text-lg sm:text-xl",
   },
   {
     id: "grandchildren",
@@ -58,10 +64,13 @@ const TREE_CATEGORIES = [
     emoji: "👶🌟",
     description: "The beautiful new leaves growing",
     types: ["grandchildren"] as MemberType[],
-    gradient: "from-fun-teal/15 to-warm-green/15",
+    gradient: "from-fun-teal/20 to-warm-green/15",
     border: "border-fun-teal/40",
     iconBg: "bg-fun-teal/20",
     textColor: "text-fun-teal",
+    size: "p-3 sm:p-4",
+    emojiSize: "text-3xl sm:text-4xl",
+    titleSize: "text-base sm:text-lg",
   },
 ];
 
@@ -315,7 +324,7 @@ const FamilyMembers = () => {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-8">
               {/* Tree connector line */}
               <div className="relative">
                 <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-fun-purple/30 via-primary/30 to-fun-teal/30 hidden sm:block" />
@@ -329,19 +338,20 @@ const FamilyMembers = () => {
                       key={cat.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: catIdx * 0.1 }}
+                      transition={{ delay: catIdx * 0.15 }}
                       className="relative"
+                      style={{ marginLeft: `${catIdx * 24}px` }}
                     >
                       {/* Category button */}
                       <button
                         onClick={() => toggleCategory(cat.id)}
-                        className={`w-full relative z-10 bg-gradient-to-r ${cat.gradient} border-2 ${cat.border} rounded-2xl p-4 sm:p-5 flex items-center gap-4 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 text-left group`}
+                        className={`w-full relative z-10 bg-gradient-to-r ${cat.gradient} border-2 ${cat.border} rounded-2xl ${cat.size} flex items-center gap-4 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 text-left group`}
                       >
-                        <div className={`text-4xl sm:text-5xl shrink-0 transition-transform duration-300 ${isExpanded ? "scale-110" : "group-hover:scale-110"}`}>
+                        <div className={`${cat.emojiSize} shrink-0 transition-transform duration-300 ${isExpanded ? "scale-110" : "group-hover:scale-110"}`}>
                           {cat.emoji}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h2 className={`font-display text-lg sm:text-xl font-bold ${cat.textColor}`}>
+                          <h2 className={`font-display ${cat.titleSize} font-bold ${cat.textColor}`}>
                             {cat.label}
                           </h2>
                           <p className="text-sm text-muted-foreground font-display truncate">
