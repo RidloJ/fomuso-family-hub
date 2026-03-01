@@ -6,50 +6,50 @@
 
 @layer base {
   :root {
-    --background: 220 30% 92%;
-    --foreground: 220 35% 15%;
+    --background: 230 25% 11%;
+    --foreground: 210 20% 95%;
 
-    --card: 220 25% 97%;
-    --card-foreground: 220 35% 15%;
+    --card: 230 22% 16%;
+    --card-foreground: 210 20% 95%;
 
-    --popover: 220 25% 97%;
-    --popover-foreground: 220 35% 15%;
+    --popover: 230 22% 16%;
+    --popover-foreground: 210 20% 95%;
 
-    --primary: 340 85% 55%;
+    --primary: 225 90% 55%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 170 50% 82%;
-    --secondary-foreground: 170 50% 18%;
+    --secondary: 230 20% 22%;
+    --secondary-foreground: 210 20% 90%;
 
-    --muted: 220 20% 88%;
-    --muted-foreground: 220 15% 42%;
+    --muted: 230 18% 20%;
+    --muted-foreground: 220 15% 60%;
 
-    --accent: 40 80% 70%;
-    --accent-foreground: 220 35% 15%;
+    --accent: 225 80% 62%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 80% 52%;
+    --destructive: 0 75% 52%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 22% 84%;
-    --input: 220 22% 84%;
-    --ring: 340 85% 55%;
+    --border: 230 18% 24%;
+    --input: 230 18% 24%;
+    --ring: 225 90% 55%;
 
     --radius: 1rem;
 
-    --sidebar-background: 220 25% 89%;
-    --sidebar-foreground: 220 35% 15%;
-    --sidebar-primary: 340 85% 55%;
+    --sidebar-background: 230 25% 9%;
+    --sidebar-foreground: 210 20% 95%;
+    --sidebar-primary: 225 90% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 40 80% 70%;
-    --sidebar-accent-foreground: 220 35% 15%;
-    --sidebar-border: 220 22% 84%;
-    --sidebar-ring: 340 85% 55%;
+    --sidebar-accent: 225 80% 62%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 230 18% 24%;
+    --sidebar-ring: 225 90% 55%;
 
     --warm-green: 155 60% 42%;
     --warm-orange: 22 95% 55%;
-    --warm-cream: 40 45% 93%;
-    --fun-purple: 275 65% 58%;
-    --fun-blue: 200 80% 52%;
+    --warm-cream: 230 20% 18%;
+    --fun-purple: 265 70% 62%;
+    --fun-blue: 225 90% 55%;
     --fun-pink: 320 70% 65%;
     --fun-yellow: 48 95% 60%;
     --fun-teal: 175 60% 45%;
