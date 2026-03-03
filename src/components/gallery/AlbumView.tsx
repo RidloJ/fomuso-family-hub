@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Upload, Heart, MessageCircle, Trash2 } from "lucide-react";
+import { ArrowLeft, Upload, Heart, MessageCircle, Trash2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -359,6 +359,29 @@ const AlbumView = ({ album, user, onBack }: Props) => {
                   </motion.button>
                   <MessageCircle className="h-5 w-5 text-muted-foreground ml-2" />
                   <span className="font-display text-sm text-muted-foreground">{comments.length}</span>
+                  <motion.button
+                    whileTap={{ scale: 0.8 }}
+                    onClick={async () => {
+                      try {
+                        const response = await fetch(selectedMedia.url);
+                        const blob = await response.blob();
+                        const blobUrl = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = blobUrl;
+                        a.download = selectedMedia.caption || `photo-${selectedMedia.id}`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(blobUrl);
+                      } catch {
+                        window.open(selectedMedia.url, "_blank");
+                      }
+                    }}
+                    className="ml-1"
+                    title="Download"
+                  >
+                    <Download className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors" />
+                  </motion.button>
                   {selectedMedia.uploaded_by === user.id && (
                     <Button variant="ghost" size="icon" className="ml-auto rounded-full" onClick={() => setMediaToDelete(selectedMedia.id)}>
                       <Trash2 className="h-4 w-4 text-destructive" />

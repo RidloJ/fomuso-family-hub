@@ -10,21 +10,35 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 const Signup = () => {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [username, setUsername] = useState("");
+  const [dob, setDob] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!firstName.trim() || !lastName.trim() || !username.trim() || !dob) {
+      toast({ title: "Missing info 😅", description: "All fields are required.", variant: "destructive" });
+      return;
+    }
     setLoading(true);
+    const fullName = `${firstName.trim()} ${lastName.trim()}`;
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, '')}/dashboard`,
-        data: { full_name: fullName },
+        data: {
+          full_name: fullName,
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          username: username.trim(),
+          date_of_birth: dob,
+        },
       },
     });
     setLoading(false);
@@ -59,16 +73,31 @@ const Signup = () => {
           </CardHeader>
           <form onSubmit={handleSignup}>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name" className="font-display">Your Name 😊</Label>
-                <Input id="name" className="rounded-xl" placeholder="What should we call you?" value={fullName} onChange={e => setFullName(e.target.value)} required />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName" className="font-display">First Name *</Label>
+                  <Input id="firstName" className="rounded-xl" placeholder="e.g. John" value={firstName} onChange={e => setFirstName(e.target.value)} required maxLength={100} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName" className="font-display">Last Name *</Label>
+                  <Input id="lastName" className="rounded-xl" placeholder="e.g. Fomuso" value={lastName} onChange={e => setLastName(e.target.value)} required maxLength={100} />
+                </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email" className="font-display">Email 📧</Label>
+                <Label htmlFor="username" className="font-display">Username 😊 *</Label>
+                <Input id="username" className="rounded-xl" placeholder="What should we call you?" value={username} onChange={e => setUsername(e.target.value)} required maxLength={50} />
+                <p className="text-xs text-muted-foreground">This is how we'll greet you in the app</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="dob" className="font-display">Date of Birth 🎂 *</Label>
+                <Input id="dob" type="date" className="rounded-xl" value={dob} onChange={e => setDob(e.target.value)} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email" className="font-display">Email 📧 *</Label>
                 <Input id="email" type="email" className="rounded-xl" value={email} onChange={e => setEmail(e.target.value)} required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password" className="font-display">Password 🔑</Label>
+                <Label htmlFor="password" className="font-display">Password 🔑 *</Label>
                 <Input id="password" type="password" className="rounded-xl" placeholder="Make it super secret!" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
               </div>
             </CardContent>

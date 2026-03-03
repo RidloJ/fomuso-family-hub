@@ -29,9 +29,11 @@ const Onboarding = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [dob, setDob] = useState("");
+  // Pre-fill from signup metadata
+  const meta = user?.user_metadata || {};
+  const [firstName, setFirstName] = useState(meta.first_name || "");
+  const [lastName, setLastName] = useState(meta.last_name || "");
+  const [dob, setDob] = useState(meta.date_of_birth || "");
   const [father, setFather] = useState("");
   const [mother, setMother] = useState("");
   const [memberType, setMemberType] = useState<MemberType>("children");
@@ -50,7 +52,6 @@ const Onboarding = () => {
 
     setSubmitting(true);
     try {
-      // Insert family member record
       const { error: fmError } = await supabase.from("family_members").insert({
         first_name: firstName.trim(),
         last_name: lastName.trim(),
@@ -62,7 +63,6 @@ const Onboarding = () => {
       } as any);
       if (fmError) throw fmError;
 
-      // Mark registration as complete
       const { error: profError } = await supabase
         .from("profiles")
         .update({ registration_complete: true, full_name: `${firstName.trim()} ${lastName.trim()}` } as any)
@@ -103,25 +103,11 @@ const Onboarding = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="font-display">First Name *</Label>
-                  <Input
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="e.g. John"
-                    required
-                    className="rounded-xl"
-                    maxLength={100}
-                  />
+                  <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="e.g. John" required className="rounded-xl" maxLength={100} />
                 </div>
                 <div className="space-y-2">
                   <Label className="font-display">Last Name *</Label>
-                  <Input
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    placeholder="e.g. Fomuso"
-                    required
-                    className="rounded-xl"
-                    maxLength={100}
-                  />
+                  <Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="e.g. Fomuso" required className="rounded-xl" maxLength={100} />
                 </div>
               </div>
 
@@ -147,13 +133,7 @@ const Onboarding = () => {
 
               <div className="space-y-2">
                 <Label className="font-display">Date of Birth *</Label>
-                <Input
-                  type="date"
-                  value={dob}
-                  onChange={(e) => setDob(e.target.value)}
-                  required
-                  className="rounded-xl"
-                />
+                <Input type="date" value={dob} onChange={(e) => setDob(e.target.value)} required className="rounded-xl" />
               </div>
 
               {isSpouseType ? (
@@ -161,14 +141,7 @@ const Onboarding = () => {
                   <Label className="font-display">
                     {memberType === "wife" ? "Husband's Name 🤵 *" : "Wife's Name 👰 *"}
                   </Label>
-                  <Input
-                    value={father}
-                    onChange={(e) => setFather(e.target.value)}
-                    placeholder={memberType === "wife" ? "Husband's name" : "Wife's name"}
-                    required
-                    className="rounded-xl"
-                    maxLength={100}
-                  />
+                  <Input value={father} onChange={(e) => setFather(e.target.value)} placeholder={memberType === "wife" ? "Husband's name" : "Wife's name"} required className="rounded-xl" maxLength={100} />
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-4">
@@ -176,29 +149,13 @@ const Onboarding = () => {
                     <Label className={`font-display ${parentDisabled ? "text-muted-foreground" : ""}`}>
                       Father {!parentDisabled ? "*" : ""}
                     </Label>
-                    <Input
-                      value={father}
-                      onChange={(e) => setFather(e.target.value)}
-                      placeholder="Father's name"
-                      className="rounded-xl"
-                      disabled={parentDisabled}
-                      required={!parentDisabled}
-                      maxLength={100}
-                    />
+                    <Input value={father} onChange={(e) => setFather(e.target.value)} placeholder="Father's name" className="rounded-xl" disabled={parentDisabled} required={!parentDisabled} maxLength={100} />
                   </div>
                   <div className="space-y-2">
                     <Label className={`font-display ${parentDisabled ? "text-muted-foreground" : ""}`}>
                       Mother {!parentDisabled ? "*" : ""}
                     </Label>
-                    <Input
-                      value={mother}
-                      onChange={(e) => setMother(e.target.value)}
-                      placeholder="Mother's name"
-                      className="rounded-xl"
-                      disabled={parentDisabled}
-                      required={!parentDisabled}
-                      maxLength={100}
-                    />
+                    <Input value={mother} onChange={(e) => setMother(e.target.value)} placeholder="Mother's name" className="rounded-xl" disabled={parentDisabled} required={!parentDisabled} maxLength={100} />
                   </div>
                 </div>
               )}

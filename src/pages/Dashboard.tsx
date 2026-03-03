@@ -1,10 +1,15 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Camera, CalendarDays, Megaphone, PiggyBank, ArrowRight, Cake, DollarSign } from "lucide-react";
+import { Camera, CalendarDays, Megaphone, PiggyBank, ArrowRight, Cake, DollarSign, Plus, Pin, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import AppNav from "@/components/AppNav";
@@ -36,15 +41,6 @@ const sections = [
     color: "from-accent/60 to-accent/30",
   },
   {
-    to: "#",
-    icon: Megaphone,
-    emoji: "📢",
-    title: "Updates & Announcements",
-    desc: "Stay in the loop with family news, pinned announcements, and shared updates.",
-    color: "from-secondary/60 to-secondary/30",
-    comingSoon: true,
-  },
-  {
     to: "/njangi",
     icon: PiggyBank,
     emoji: "💰",
@@ -62,7 +58,7 @@ const Dashboard = () => {
 
   if (loading || !user) return null;
 
-  const name = user.user_metadata?.full_name || "Family Member";
+  const username = user.user_metadata?.username || user.user_metadata?.full_name || "Family Member";
 
   const handleRefresh = async () => {
     await queryClient.invalidateQueries();
@@ -89,7 +85,7 @@ const Dashboard = () => {
           className="mb-10"
         >
           <h1 className="font-display text-2xl sm:text-4xl font-bold mb-2">
-            Hey, {name}! 🌟
+            Hey, {username}! 🌟
           </h1>
           <p className="text-lg text-muted-foreground font-display">
             Welcome back to the Fomuso Family Hub 🏡
@@ -105,47 +101,181 @@ const Dashboard = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1, type: "spring", bounce: 0.3 }}
-              whileHover={s.comingSoon ? {} : { y: -4, scale: 1.01 }}
-              className={`relative bg-gradient-to-br ${s.color} rounded-2xl border-2 border-border p-6 ${s.comingSoon ? "opacity-60" : "cursor-pointer"}`}
+              whileHover={{ y: -4, scale: 1.01 }}
+              className={`relative bg-gradient-to-br ${s.color} rounded-2xl border-2 border-border p-6 cursor-pointer`}
             >
-              {s.comingSoon ? (
-                <div>
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 rounded-xl bg-background/80 flex items-center justify-center">
-                      <s.icon className="h-6 w-6 text-muted-foreground" />
-                    </div>
-                    <h2 className="font-display text-xl font-bold">{s.emoji} {s.title}</h2>
-                  </div>
-                  <p className="text-muted-foreground font-display text-sm mb-4">{s.desc}</p>
-                  <span className="text-xs font-display font-semibold text-muted-foreground bg-muted px-3 py-1 rounded-full">
-                    Coming Soon ✨
-                  </span>
-                </div>
-              ) : (
               <Link to={s.to} className="block">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 rounded-xl bg-background/80 flex items-center justify-center">
-                      <s.icon className="h-6 w-6 text-primary" />
-                    </div>
-                    <h2 className="font-display text-xl font-bold">{s.emoji} {s.title}</h2>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 rounded-xl bg-background/80 flex items-center justify-center">
+                    <s.icon className="h-6 w-6 text-primary" />
                   </div>
-                  <p className="text-muted-foreground font-display text-sm mb-4">{s.desc}</p>
-                  {s.to === "/gallery" && <GalleryCarousel />}
-                  <Button variant="ghost" size="sm" className="rounded-full font-display p-0 text-primary hover:bg-transparent mt-2">
-                    Explore <ArrowRight className="h-4 w-4 ml-1" />
-                  </Button>
-                </Link>
-              )}
+                  <h2 className="font-display text-xl font-bold">{s.emoji} {s.title}</h2>
+                </div>
+                <p className="text-muted-foreground font-display text-sm mb-4">{s.desc}</p>
+                {s.to === "/gallery" && <GalleryCarousel />}
+                <Button variant="ghost" size="sm" className="rounded-full font-display p-0 text-primary hover:bg-transparent mt-2">
+                  Explore <ArrowRight className="h-4 w-4 ml-1" />
+                </Button>
+              </Link>
             </motion.div>
           ))}
-        </div>
 
+          {/* Announcements Section */}
+          <AnnouncementsCard user={user} />
+        </div>
 
         <NjangiWidget user={user} />
         <BirthdaysThisMonth user={user} />
       </main>
       </PullToRefresh>
     </div>
+  );
+};
+
+const AnnouncementsCard = ({ user }: { user: any }) => {
+  const queryClient = useQueryClient();
+  const [newPostOpen, setNewPostOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+
+  const { data: isAdmin = false } = useQuery({
+    queryKey: ["is-admin", user.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle();
+      return !!data;
+    },
+  });
+
+  const { data: posts = [] } = useQuery({
+    queryKey: ["posts"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("posts")
+        .select("*")
+        .order("is_pinned", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(5);
+      if (error) throw error;
+      // Get author names
+      const authorIds = [...new Set((data || []).map((p: any) => p.author_id))];
+      if (authorIds.length === 0) return data || [];
+      const { data: profiles } = await supabase.from("profiles").select("user_id, full_name").in("user_id", authorIds);
+      const nameMap = Object.fromEntries((profiles || []).map((p: any) => [p.user_id, p.full_name]));
+      return (data || []).map((p: any) => ({ ...p, author_name: nameMap[p.author_id] || "Unknown" }));
+    },
+  });
+
+  const createPost = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("posts").insert({
+        author_id: user.id,
+        title: title.trim(),
+        content: content.trim(),
+      } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      setNewPostOpen(false);
+      setTitle("");
+      setContent("");
+    },
+  });
+
+  const deletePost = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("posts").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["posts"] }),
+  });
+
+  const togglePin = useMutation({
+    mutationFn: async ({ id, pinned }: { id: string; pinned: boolean }) => {
+      const { error } = await supabase.from("posts").update({ is_pinned: !pinned } as any).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["posts"] }),
+  });
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.3, type: "spring", bounce: 0.3 }}
+      className="relative bg-gradient-to-br from-secondary/60 to-secondary/30 rounded-2xl border-2 border-border p-6"
+    >
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-background/80 flex items-center justify-center">
+            <Megaphone className="h-6 w-6 text-primary" />
+          </div>
+          <h2 className="font-display text-xl font-bold">📢 Announcements</h2>
+        </div>
+        <Dialog open={newPostOpen} onOpenChange={setNewPostOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm" variant="ghost" className="rounded-full">
+              <Plus className="h-4 w-4" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="rounded-3xl">
+            <DialogHeader>
+              <DialogTitle className="font-display">New Announcement 📢</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={(e) => { e.preventDefault(); createPost.mutate(); }} className="space-y-4">
+              <div className="space-y-2">
+                <Label className="font-display">Title *</Label>
+                <Input className="rounded-xl" placeholder="e.g., Family Meeting Update" value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={200} />
+              </div>
+              <div className="space-y-2">
+                <Label className="font-display">Message *</Label>
+                <Textarea className="rounded-xl" placeholder="Share your update with the family..." value={content} onChange={(e) => setContent(e.target.value)} required maxLength={2000} />
+              </div>
+              <Button type="submit" className="w-full rounded-full font-display" disabled={createPost.isPending}>
+                {createPost.isPending ? "Posting... ⏳" : "Post Announcement 🎉"}
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {posts.length === 0 ? (
+        <p className="text-muted-foreground font-display text-sm py-4 text-center">
+          No announcements yet — post the first one! 📝
+        </p>
+      ) : (
+        <div className="space-y-3 max-h-64 overflow-y-auto">
+          {posts.map((post: any) => (
+            <div key={post.id} className="bg-background/60 rounded-xl p-3 relative group">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    {post.is_pinned && <Pin className="h-3 w-3 text-primary flex-shrink-0" />}
+                    <h4 className="font-display font-semibold text-sm truncate">{post.title}</h4>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{post.content}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    {post.author_name} · {format(new Date(post.created_at), "MMM d")}
+                  </p>
+                </div>
+                {(isAdmin || post.author_id === user.id) && (
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                    {isAdmin && (
+                      <button onClick={() => togglePin.mutate({ id: post.id, pinned: post.is_pinned })} className="p-1 hover:bg-muted rounded-full">
+                        <Pin className={`h-3 w-3 ${post.is_pinned ? "text-primary" : "text-muted-foreground"}`} />
+                      </button>
+                    )}
+                    <button onClick={() => deletePost.mutate(post.id)} className="p-1 hover:bg-destructive/20 rounded-full">
+                      <Trash2 className="h-3 w-3 text-destructive" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </motion.div>
   );
 };
 
@@ -186,10 +316,7 @@ const BirthdaysThisMonth = ({ user }: { user: any }) => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
               {birthdays.map((b: any, i: number) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-3 rounded-xl bg-accent/40 px-4 py-3"
-                >
+                <div key={i} className="flex items-center gap-3 rounded-xl bg-accent/40 px-4 py-3">
                   <span className="text-2xl">🎈</span>
                   <div>
                     <p className="font-display font-semibold text-sm">{b.first_name} {b.last_name}</p>
