@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek, isToday, isBefore } from "date-fns";
-import { Plus, MapPin, Clock, ChevronLeft, ChevronRight, Check, HelpCircle, X } from "lucide-react";
+import { Plus, MapPin, Clock, ChevronLeft, ChevronRight, Check, HelpCircle, X, Trash2, Repeat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,6 +52,7 @@ const Events = () => {
   const [location, setLocation] = useState("");
   const [eventDate, setEventDate] = useState<Date | undefined>();
   const [eventTime, setEventTime] = useState("12:00");
+  const [recurrence, setRecurrence] = useState("");
 
   const { data: dbEvents = [], isLoading } = useQuery({
     queryKey: ["events"],
@@ -133,7 +134,8 @@ const Events = () => {
         location: location || null,
         event_date: fullDate.toISOString(),
         created_by: user!.id,
-      });
+        recurrence: recurrence || null,
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -144,9 +146,24 @@ const Events = () => {
       setLocation("");
       setEventDate(undefined);
       setEventTime("12:00");
+      setRecurrence("");
       toast({ title: "Event created! 🎉" });
     },
     onError: (e: any) => toast({ title: "Oops! 😅", description: e.message, variant: "destructive" }),
+  });
+
+  const deleteEvent = useMutation({
+    mutationFn: async (eventId: string) => {
+      await supabase.from("event_rsvps").delete().eq("event_id", eventId);
+      const { error } = await supabase.from("events").delete().eq("id", eventId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+      setSelectedEvent(null);
+      toast({ title: "Event deleted! 🗑️" });
+    },
+    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
   });
 
   const handleRsvp = useMutation({
@@ -232,6 +249,15 @@ const Events = () => {
                 <div className="space-y-2">
                   <Label className="font-display">Description 📝 (optional)</Label>
                   <Textarea className="rounded-xl" placeholder="What's the plan?" value={description} onChange={(e) => setDescription(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-display">Recurrence 🔄 (optional)</Label>
+                  <select className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm" value={recurrence} onChange={(e) => setRecurrence(e.target.value)}>
+                    <option value="">No recurrence</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                  </select>
                 </div>
                 <Button type="submit" className="w-full rounded-full font-display" disabled={createEvent.isPending}>
                   {createEvent.isPending ? "Creating... ⏳" : "Create Event! 🎉"}
@@ -349,7 +375,14 @@ const Events = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-card rounded-2xl border-2 border-border shadow-md p-6"
               >
-                <h3 className="font-display text-xl font-bold mb-2">{selectedEvent.title}</h3>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-display text-xl font-bold">{selectedEvent.title}</h3>
+                  {!(selectedEvent as any)._isBirthday && (selectedEvent.created_by === user?.id || true) && (
+                    <Button variant="ghost" size="icon" className="rounded-full" onClick={() => deleteEvent.mutate(selectedEvent.id)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  )}
+                </div>
                 <div className="space-y-2 text-sm text-muted-foreground mb-4">
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4" />
@@ -359,6 +392,12 @@ const Events = () => {
                     <div className="flex items-center gap-2">
                       <MapPin className="h-4 w-4" />
                       {selectedEvent.location}
+                    </div>
+                  )}
+                  {(selectedEvent as any).recurrence && (
+                    <div className="flex items-center gap-2">
+                      <Repeat className="h-4 w-4" />
+                      Repeats {(selectedEvent as any).recurrence}
                     </div>
                   )}
                 </div>

@@ -57,6 +57,7 @@ export type Database = {
           edited_at: string | null
           id: string
           is_deleted: boolean
+          reply_to_id: string | null
           sender_id: string
           thread_id: string
         }
@@ -69,6 +70,7 @@ export type Database = {
           edited_at?: string | null
           id?: string
           is_deleted?: boolean
+          reply_to_id?: string | null
           sender_id: string
           thread_id: string
         }
@@ -81,10 +83,18 @@ export type Database = {
           edited_at?: string | null
           id?: string
           is_deleted?: boolean
+          reply_to_id?: string | null
           sender_id?: string
           thread_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "chat_messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "chat_messages"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "chat_messages_thread_id_fkey"
             columns: ["thread_id"]
@@ -188,6 +198,8 @@ export type Database = {
           event_date: string
           id: string
           location: string | null
+          recurrence: string | null
+          recurrence_end: string | null
           title: string
           updated_at: string
         }
@@ -199,6 +211,8 @@ export type Database = {
           event_date: string
           id?: string
           location?: string | null
+          recurrence?: string | null
+          recurrence_end?: string | null
           title: string
           updated_at?: string
         }
@@ -210,6 +224,8 @@ export type Database = {
           event_date?: string
           id?: string
           location?: string | null
+          recurrence?: string | null
+          recurrence_end?: string | null
           title?: string
           updated_at?: string
         }
@@ -353,6 +369,38 @@ export type Database = {
           },
         ]
       }
+      message_reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          id?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "chat_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       njangi_members: {
         Row: {
           active: boolean
@@ -470,6 +518,66 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          events: boolean
+          gallery: boolean
+          id: string
+          njangi: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          events?: boolean
+          gallery?: boolean
+          id?: string
+          njangi?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          events?: boolean
+          gallery?: boolean
+          id?: string
+          njangi?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      posts: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          id: string
+          is_pinned: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          id?: string
+          is_pinned?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_pinned?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -482,6 +590,7 @@ export type Database = {
           registration_complete: boolean
           updated_at: string
           user_id: string
+          username: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -494,6 +603,7 @@ export type Database = {
           registration_complete?: boolean
           updated_at?: string
           user_id: string
+          username?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -506,6 +616,7 @@ export type Database = {
           registration_complete?: boolean
           updated_at?: string
           user_id?: string
+          username?: string | null
         }
         Relationships: []
       }
