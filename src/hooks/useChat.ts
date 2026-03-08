@@ -42,7 +42,7 @@ export const useThreads = () => {
     queryFn: async () => {
       if (!user) return [];
 
-      // Get threads user belongs to
+      // 1. Get thread IDs the user belongs to
       const { data: memberThreads, error: mtErr } = await supabase
         .from("chat_thread_members")
         .select("thread_id")
@@ -52,65 +52,93 @@ export const useThreads = () => {
 
       const threadIds = memberThreads.map((m) => m.thread_id);
 
+      // 2. Fetch all threads in one query
       const { data: threads, error: tErr } = await supabase
         .from("chat_threads")
         .select("*")
         .in("id", threadIds)
         .order("created_at", { ascending: true });
       if (tErr) throw tErr;
+      if (!threads?.length) return [];
 
-      // Get last message per thread
-      const threadsWithInfo: ChatThread[] = [];
-      for (const thread of threads || []) {
-        const { data: lastMsg } = await supabase
-          .from("chat_messages")
-          .select("content, created_at, sender_id")
-          .eq("thread_id", thread.id)
-          .eq("is_deleted", false)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .single();
+      // 3. Fetch ALL members for ALL threads in one query
+      const { data: allMembers } = await supabase
+        .from("chat_thread_members")
+        .select("thread_id, member_id")
+        .in("thread_id", threadIds);
 
-        // Get members with profiles
-        const { data: members } = await supabase
-          .from("chat_thread_members")
-          .select("member_id")
-          .eq("thread_id", thread.id);
+      // 4. Fetch ALL relevant profiles in one query
+      const allMemberIds = [...new Set((allMembers || []).map((m) => m.member_id))];
+      const { data: allProfiles } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, avatar_url, last_seen_at")
+        .in("user_id", allMemberIds);
 
-        const memberIds = (members || []).map((m) => m.member_id);
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("user_id, full_name, avatar_url, last_seen_at")
-          .in("user_id", memberIds);
+      const profileMap = new Map(
+        (allProfiles || []).map((p) => [p.user_id, p])
+      );
 
+      // 5. Fetch the latest message per thread using a single query
+      // Get last messages for all threads at once
+      const { data: allMessages } = await supabase
+        .from("chat_messages")
+        .select("thread_id, content, created_at, sender_id")
+        .in("thread_id", threadIds)
+        .eq("is_deleted", false)
+        .order("created_at", { ascending: false });
+
+      // Build a map of thread_id -> latest message
+      const lastMessageMap = new Map<string, { content: string; created_at: string; sender_id: string }>();
+      for (const msg of allMessages || []) {
+        if (!lastMessageMap.has(msg.thread_id)) {
+          lastMessageMap.set(msg.thread_id, msg);
+        }
+      }
+
+      // 6. Build members map per thread
+      const threadMembersMap = new Map<string, typeof allMembers>();
+      for (const m of allMembers || []) {
+        if (!threadMembersMap.has(m.thread_id)) {
+          threadMembersMap.set(m.thread_id, []);
+        }
+        threadMembersMap.get(m.thread_id)!.push(m);
+      }
+
+      // 7. Assemble threads
+      const threadsWithInfo: ChatThread[] = threads.map((thread) => {
+        const members = threadMembersMap.get(thread.id) || [];
+        const memberProfiles = members
+          .map((m) => profileMap.get(m.member_id))
+          .filter(Boolean) as NonNullable<ReturnType<typeof profileMap.get>>[];
+
+        const lastMsg = lastMessageMap.get(thread.id);
         let senderName = "";
         if (lastMsg) {
-          const sender = profiles?.find((p) => p.user_id === lastMsg.sender_id);
-          senderName = sender?.full_name || "Unknown";
+          senderName = profileMap.get(lastMsg.sender_id)?.full_name || "Unknown";
         }
 
-        // For direct chats, set the title to the other person's name
+        // For direct chats, set title to other person's name
         let title = thread.title;
-        if (thread.type === "direct" && profiles) {
-          const other = profiles.find((p) => p.user_id !== user.id);
+        if (thread.type === "direct") {
+          const other = memberProfiles.find((p) => p.user_id !== user.id);
           title = other?.full_name || "Direct Chat";
         }
 
-        threadsWithInfo.push({
+        return {
           ...thread,
           type: thread.type as "group" | "direct",
           title,
           lastMessage: lastMsg
             ? { content: lastMsg.content, created_at: lastMsg.created_at, sender_name: senderName }
             : undefined,
-          members: profiles?.map((p) => ({
+          members: memberProfiles.map((p) => ({
             member_id: p.user_id,
             full_name: p.full_name,
             avatar_url: p.avatar_url,
             last_seen_at: p.last_seen_at,
           })),
-        });
-      }
+        };
+      });
 
       // Sort: group first, then by last message time
       return threadsWithInfo.sort((a, b) => {
@@ -122,6 +150,7 @@ export const useThreads = () => {
       });
     },
     enabled: !!user,
+    staleTime: 10000, // Cache for 10s to avoid rapid refetches
   });
 };
 
@@ -140,6 +169,7 @@ export const useReadReceipts = (threadId: string | null, currentUserId: string) 
     },
     enabled: !!threadId,
     refetchInterval: 10000,
+    staleTime: 5000,
   });
 };
 
@@ -168,29 +198,37 @@ export const useMessages = (threadId: string | null) => {
     queryFn: async () => {
       if (!threadId) return [];
 
-      const { data: messages, error } = await supabase
+      // Fetch messages and profiles in parallel
+      const messagesPromise = supabase
         .from("chat_messages")
         .select("*")
         .eq("thread_id", threadId)
         .order("created_at", { ascending: true });
-      if (error) throw error;
 
-      // Get sender profiles
-      const senderIds = [...new Set((messages || []).map((m) => m.sender_id))];
+      const { data: messages, error } = await messagesPromise;
+      if (error) throw error;
+      if (!messages?.length) return [];
+
+      const senderIds = [...new Set(messages.map((m) => m.sender_id))];
       const { data: profiles } = await supabase
         .from("profiles")
         .select("user_id, full_name, avatar_url")
         .in("user_id", senderIds);
 
-      return (messages || []).map((m) => ({
+      const profileMap = new Map(
+        (profiles || []).map((p) => [p.user_id, p])
+      );
+
+      return messages.map((m) => ({
         ...m,
-        sender: profiles?.find((p) => p.user_id === m.sender_id) || {
+        sender: profileMap.get(m.sender_id) || {
           full_name: "Unknown",
           avatar_url: null,
         },
       })) as ChatMessage[];
     },
     enabled: !!threadId,
+    staleTime: 5000,
   });
 
   // Subscribe to realtime messages
@@ -202,7 +240,7 @@ export const useMessages = (threadId: string | null) => {
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*",
           schema: "public",
           table: "chat_messages",
           filter: `thread_id=eq.${threadId}`,
@@ -269,7 +307,6 @@ export const useEnsureGroupChat = () => {
       // Clean up duplicates: keep only the oldest one
       if (existingThreads.length > 1) {
         const duplicateIds = existingThreads.slice(1).map((t) => t.id);
-        // Remove members and messages from duplicates, then delete threads
         for (const dupId of duplicateIds) {
           await supabase.from("chat_thread_members").delete().eq("thread_id", dupId);
           await supabase.from("chat_messages").delete().eq("thread_id", dupId);
@@ -287,26 +324,18 @@ export const useEnsureGroupChat = () => {
       .single();
     if (tErr) throw tErr;
 
-    // Always add creator first
-    await supabase.from("chat_thread_members").insert({
-      thread_id: thread.id,
-      member_id: user.id,
-    });
-
-    // Add all other approved family profiles as members
+    // Add creator + all approved members in parallel
     const { data: profiles } = await supabase
       .from("profiles")
       .select("user_id")
       .eq("is_approved", true)
       .neq("user_id", user.id);
 
-    if (profiles && profiles.length > 0) {
-      const members = profiles.map((p) => ({
-        thread_id: thread.id,
-        member_id: p.user_id,
-      }));
-      await supabase.from("chat_thread_members").insert(members);
-    }
+    const members = [
+      { thread_id: thread.id, member_id: user.id },
+      ...(profiles || []).map((p) => ({ thread_id: thread.id, member_id: p.user_id })),
+    ];
+    await supabase.from("chat_thread_members").insert(members);
 
     return thread.id;
   }, [user]);
@@ -348,32 +377,34 @@ export const useCreateDirectChat = () => {
     async (otherUserId: string) => {
       if (!user) return null;
 
-      // Check if direct chat already exists between these two users
+      // Check if direct chat already exists — batch approach
       const { data: myThreads } = await supabase
         .from("chat_thread_members")
         .select("thread_id")
         .eq("member_id", user.id);
 
-      if (myThreads) {
-        for (const mt of myThreads) {
-          const { data: thread } = await supabase
-            .from("chat_threads")
-            .select("*")
-            .eq("id", mt.thread_id)
-            .eq("type", "direct")
-            .single();
+      if (myThreads?.length) {
+        const myThreadIds = myThreads.map((t) => t.thread_id);
 
-          if (thread) {
-            const { data: otherMember } = await supabase
-              .from("chat_thread_members")
-              .select("member_id")
-              .eq("thread_id", thread.id)
-              .eq("member_id", otherUserId)
-              .single();
+        // Get all direct threads in one query
+        const { data: directThreads } = await supabase
+          .from("chat_threads")
+          .select("id")
+          .in("id", myThreadIds)
+          .eq("type", "direct");
 
-            if (otherMember) {
-              return thread.id;
-            }
+        if (directThreads?.length) {
+          const directIds = directThreads.map((t) => t.id);
+
+          // Check if other user is in any of these threads
+          const { data: otherMemberships } = await supabase
+            .from("chat_thread_members")
+            .select("thread_id")
+            .in("thread_id", directIds)
+            .eq("member_id", otherUserId);
+
+          if (otherMemberships?.length) {
+            return otherMemberships[0].thread_id;
           }
         }
       }
